@@ -1,0 +1,129 @@
+/* 印刷用スタイル */
+@media print {
+  /* ページ設定 */
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  /* 不要な要素を非表示 */
+  header,
+  .no-print,
+  button:not(.print-button),
+  .bg-gray-50,
+  .shadow-md {
+    display: none !important;
+  }
+
+  /* ページ全体 */
+  body {
+    background: white !important;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* カードのスタイルを調整 */
+  .print-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 10mm;
+    border: 1px solid #000;
+    padding: 5mm;
+  }
+
+  /* 配置図のページ分割 */
+  .print-diagram {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  /* テーブルのスタイル */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+  table th,
+  table td {
+    border: 1px solid #000;
+    padding: 2mm;
+  }
+
+  table thead {
+    background: #f0f0f0 !important;
+  }
+
+  /* SVG配置図 */
+  svg {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* 色の調整（印刷時も色を維持） */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* フォントサイズの調整 */
+  h1 {
+    font-size: 18pt;
+  }
+
+  h2 {
+    font-size: 16pt;
+  }
+
+  h3 {
+    font-size: 14pt;
+  }
+
+  p, td, th {
+    font-size: 10pt;
+  }
+
+  /* リンクの下線を削除 */
+  a {
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* ページ番号を追加 */
+  .print-footer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    font-size: 9pt;
+    color: #666;
+  }
+
+  /* サマリー情報を1ページ目に */
+  .print-summary {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  /* パターンリストのスタイル */
+  .print-pattern-list {
+    margin-bottom: 10mm;
+  }
+
+  /* 各パターンの配置図を別ページに */
+  .print-pattern-diagram {
+    break-before: page;
+    page-break-before: always;
+  }
+}
+
+/* 印刷プレビュー用のスタイル */
+.print-preview-mode {
+  background: white;
+  max-width: 297mm; /* A4 landscape width */
+  margin: 0 auto;
+  padding: 10mm;
+}
+
+.print-preview-mode header,
+.print-preview-mode .no-print {
+  display: none;
+}

@@ -14,7 +14,11 @@ import { decideRotation, type RotationStrategy } from './placement'
 import { splitSpace } from './space'
 import { calculateYield, calculateAverageYield } from './yield'
 import { groupPatterns, getTotalPlatesFromPatterns } from './pattern'
-import { calculateMaximalRectangles } from './maximal-rectangles'
+import {
+  calculateMaximalRectangles,
+  type OptimizationGoal,
+} from './maximal-rectangles'
+import { optimizeWithGA } from './genetic-algorithm'
 
 /**
  * 配置戦略の組み合わせ
@@ -345,18 +349,33 @@ function calculateGuillotine(
  * @param cutConfig 切断設定
  * @param items 製品リスト
  * @param algorithm 使用するアルゴリズム（デフォルト: maximal-rectangles）
+ * @param optimizationGoal 最適化目標（デフォルト: yield）
+ * @param useGA GAを使用するかどうか（デフォルト: false）
+ * @param useGridGrouping グリッドグルーピングを使用するかどうか（デフォルト: false）
  * @returns 計算結果
  */
 export function calculate(
   plateConfig: PlateConfig,
   cutConfig: CutConfig,
   items: Item[],
-  algorithm: Algorithm = 'maximal-rectangles'
+  algorithm: Algorithm = 'maximal-rectangles',
+  optimizationGoal: OptimizationGoal = 'yield',
+  useGA: boolean = false,
+  useGridGrouping: boolean = false
 ): CalculationResult {
   if (algorithm === 'maximal-rectangles') {
-    return calculateMaximalRectangles(plateConfig, cutConfig, items)
+    // GAを使用する場合
+    if (useGA) {
+      return optimizeWithGA(plateConfig, cutConfig, items, optimizationGoal, useGridGrouping)
+    }
+
+    // 通常のMaximal Rectangles
+    return calculateMaximalRectangles(plateConfig, cutConfig, items, optimizationGoal, useGridGrouping)
   }
 
   // ギロチンカットを使用
   return calculateGuillotine(plateConfig, cutConfig, items)
 }
+
+// OptimizationGoal型をエクスポート
+export type { OptimizationGoal }

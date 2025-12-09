@@ -2,11 +2,18 @@
 
 import { useState } from 'react'
 import { Header, MainLayout } from '@/components/layout'
-import { PlateConfigForm, CutConfigForm, ProductList, ProductForm, PresetManager } from '@/components/forms'
+import {
+  PlateConfigForm,
+  CutConfigForm,
+  ProductList,
+  ProductForm,
+  PresetManager,
+  OptimizationGoalForm,
+} from '@/components/forms'
 import { ResultSummary, PatternGroupList, PlacementDiagram, SkippedItemsDisplay } from '@/components/results'
 import { PrintButton, PrintPreview } from '@/components/print'
 import { Button, Card, Spinner, ErrorMessage, LoadingOverlay } from '@/components/ui'
-import { calculate } from '@/lib/algorithm/guillotine'
+import { calculate, type OptimizationGoal } from '@/lib/algorithm/guillotine'
 import type { PlateConfig, CutConfig, Item, CalculationResult, PatternGroup } from '@/types'
 import { DEFAULT_PLATE_CONFIG } from '@/types'
 
@@ -19,6 +26,9 @@ export default function Home() {
   // Configuration state
   const [plateConfig, setPlateConfig] = useState<PlateConfig>(DEFAULT_PLATE_CONFIG)
   const [cutConfig, setCutConfig] = useState<CutConfig>(DEFAULT_CUT_CONFIG)
+  const [optimizationGoal, setOptimizationGoal] = useState<OptimizationGoal>('yield')
+  const [useGA, setUseGA] = useState(false)
+  const [useGridGrouping, setUseGridGrouping] = useState(false)
 
   // Items state
   const [items, setItems] = useState<Item[]>([])
@@ -79,7 +89,15 @@ export default function Home() {
     // Run calculation in a setTimeout to allow UI to update
     setTimeout(() => {
       try {
-        const calculationResult = calculate(plateConfig, cutConfig, items)
+        const calculationResult = calculate(
+          plateConfig,
+          cutConfig,
+          items,
+          'maximal-rectangles',
+          optimizationGoal,
+          useGA,
+          useGridGrouping
+        )
         setResult(calculationResult)
         setSelectedPattern(calculationResult.patterns[0])
         setError(null)
@@ -117,6 +135,16 @@ export default function Home() {
             <CutConfigForm
               initialConfig={cutConfig}
               onChange={setCutConfig}
+            />
+
+            {/* Optimization Goal */}
+            <OptimizationGoalForm
+              value={optimizationGoal}
+              onChange={setOptimizationGoal}
+              useGA={useGA}
+              onUseGAChange={setUseGA}
+              useGridGrouping={useGridGrouping}
+              onUseGridGroupingChange={setUseGridGrouping}
             />
 
             {/* Preset Manager */}

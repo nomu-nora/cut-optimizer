@@ -147,6 +147,7 @@ export function sortByStrategy(items: Item[], strategy: SortStrategy): Item[] {
 /**
  * 製品を個数分に展開する
  * 例: {name: 'A', qty: 3} → [{name: 'A'}, {name: 'A'}, {name: 'A'}]
+ * 各アイテムに一意のIDを割り当てる
  *
  * @param items 製品のリスト
  * @returns 個数分に展開された製品リスト
@@ -156,7 +157,11 @@ export function expandItems(items: Item[]): Item[] {
 
   for (const item of items) {
     for (let i = 0; i < item.quantity; i++) {
-      expanded.push(item)
+      // 各アイテムに一意のIDを割り当てる
+      expanded.push({
+        ...item,
+        id: `${item.id}-${i}`,
+      })
     }
   }
 

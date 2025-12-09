@@ -6,7 +6,7 @@ import "./print.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "取り数最適化システム v1.0",
+  title: "取り数最適化システム",
   description: "元板から製品を効率的に切り出す配置計算アプリ",
 };
 

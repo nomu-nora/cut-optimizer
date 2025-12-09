@@ -12,3 +12,5 @@ export type { ProductFormProps } from './ProductForm'
 
 export { PresetManager } from './PresetManager'
 export type { PresetManagerProps } from './PresetManager'
+
+export { OptimizationGoalForm } from './OptimizationGoalForm'

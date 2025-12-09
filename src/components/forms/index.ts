@@ -14,3 +14,8 @@ export { PresetManager } from './PresetManager'
 export type { PresetManagerProps } from './PresetManager'
 
 export { OptimizationGoalForm } from './OptimizationGoalForm'
+
+export { AlgorithmSelector } from './AlgorithmSelector'
+export type { AlgorithmType } from './AlgorithmSelector'
+
+export { CalculationControl } from './CalculationControl'

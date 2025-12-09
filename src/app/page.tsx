@@ -8,7 +8,8 @@ import {
   ProductList,
   ProductForm,
   PresetManager,
-  OptimizationGoalForm,
+  CalculationControl,
+  type AlgorithmType,
 } from '@/components/forms'
 import { ResultSummary, PatternGroupList, PlacementDiagram, SkippedItemsDisplay } from '@/components/results'
 import { PrintButton, PrintPreview } from '@/components/print'
@@ -26,6 +27,7 @@ export default function Home() {
   // Configuration state
   const [plateConfig, setPlateConfig] = useState<PlateConfig>(DEFAULT_PLATE_CONFIG)
   const [cutConfig, setCutConfig] = useState<CutConfig>(DEFAULT_CUT_CONFIG)
+  const [algorithm, setAlgorithm] = useState<AlgorithmType>('maximal-rectangles')
   const [optimizationGoal, setOptimizationGoal] = useState<OptimizationGoal>('yield')
   const [useGA, setUseGA] = useState(false)
   const [useGridGrouping, setUseGridGrouping] = useState(false)
@@ -93,7 +95,7 @@ export default function Home() {
           plateConfig,
           cutConfig,
           items,
-          'maximal-rectangles',
+          algorithm,
           optimizationGoal,
           useGA,
           useGridGrouping
@@ -137,16 +139,6 @@ export default function Home() {
               onChange={setCutConfig}
             />
 
-            {/* Optimization Goal */}
-            <OptimizationGoalForm
-              value={optimizationGoal}
-              onChange={setOptimizationGoal}
-              useGA={useGA}
-              onUseGAChange={setUseGA}
-              useGridGrouping={useGridGrouping}
-              onUseGridGroupingChange={setUseGridGrouping}
-            />
-
             {/* Preset Manager */}
             <PresetManager onLoadPreset={handleLoadPreset} />
 
@@ -164,24 +156,34 @@ export default function Home() {
               onDelete={handleDeleteItem}
             />
 
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button
-                onClick={handleCalculate}
-                disabled={items.length === 0 || isCalculating}
-                fullWidth
-                variant="primary"
-              >
-                {isCalculating ? '計算中...' : '計算実行'}
-              </Button>
+            {/* Clear Button */}
+            <div className="flex justify-end">
               <Button
                 onClick={handleClearAll}
                 disabled={items.length === 0 && !result}
                 variant="outline"
               >
-                クリア
+                すべてクリア
               </Button>
             </div>
+          </div>
+        }
+        resultArea={
+          <div className="space-y-4">
+            {/* Calculation Control */}
+            <CalculationControl
+              algorithm={algorithm}
+              onAlgorithmChange={setAlgorithm}
+              optimizationGoal={optimizationGoal}
+              onOptimizationGoalChange={setOptimizationGoal}
+              useGA={useGA}
+              onUseGAChange={setUseGA}
+              useGridGrouping={useGridGrouping}
+              onUseGridGroupingChange={setUseGridGrouping}
+              onCalculate={handleCalculate}
+              isCalculating={isCalculating}
+              disabled={items.length === 0}
+            />
 
             {/* Error Display */}
             {error && (
@@ -190,10 +192,7 @@ export default function Home() {
                 onRetry={() => setError(null)}
               />
             )}
-          </div>
-        }
-        resultArea={
-          <div className="space-y-4">
+
             {!result && !isCalculating && (
               <Card>
                 <div className="text-center py-12">

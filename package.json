@@ -1,6 +1,6 @@
 {
   "name": "cut-optimizer",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "取り数最適化システム - 元板から製品を効率的に切り出す配置計算アプリ",
   "private": true,
   "scripts": {

@@ -14,6 +14,7 @@ import { decideRotation, type RotationStrategy } from './placement'
 import { splitSpace } from './space'
 import { calculateYield, calculateAverageYield } from './yield'
 import { groupPatterns, getTotalPlatesFromPatterns } from './pattern'
+import { calculateMaximalRectangles } from './maximal-rectangles'
 
 /**
  * 配置戦略の組み合わせ
@@ -253,14 +254,19 @@ function calculateWithStrategy(
 }
 
 /**
- * 複数の戦略を試して最良のパターンを選択
+ * アルゴリズムの種類
+ */
+export type Algorithm = 'guillotine' | 'maximal-rectangles'
+
+/**
+ * 複数の戦略を試して最良のパターンを選択（ギロチンカット）
  *
  * @param plateConfig 元板設定
  * @param cutConfig 切断設定
  * @param items 製品リスト
  * @returns 計算結果
  */
-export function calculate(
+function calculateGuillotine(
   plateConfig: PlateConfig,
   cutConfig: CutConfig,
   items: Item[]
@@ -330,4 +336,27 @@ export function calculate(
     ...bestResult,
     skippedItems: skippedItems.length > 0 ? skippedItems : undefined,
   }
+}
+
+/**
+ * 配置計算のメイン関数
+ *
+ * @param plateConfig 元板設定
+ * @param cutConfig 切断設定
+ * @param items 製品リスト
+ * @param algorithm 使用するアルゴリズム（デフォルト: maximal-rectangles）
+ * @returns 計算結果
+ */
+export function calculate(
+  plateConfig: PlateConfig,
+  cutConfig: CutConfig,
+  items: Item[],
+  algorithm: Algorithm = 'maximal-rectangles'
+): CalculationResult {
+  if (algorithm === 'maximal-rectangles') {
+    return calculateMaximalRectangles(plateConfig, cutConfig, items)
+  }
+
+  // ギロチンカットを使用
+  return calculateGuillotine(plateConfig, cutConfig, items)
 }

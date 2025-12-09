@@ -1,6 +1,15 @@
 import type { Item, FreeSpace, CutConfig, CanPlaceResult } from '@/types'
 
 /**
+ * 回転戦略の種類
+ */
+export type RotationStrategy =
+  | 'max-space' // 残スペース最大化（デフォルト）
+  | 'prefer-rotate' // 回転優先
+  | 'no-rotate' // 回転なし
+  | 'fit-space' // 空きスペースに合わせる
+
+/**
  * 製品が空きスペースに配置可能かチェックする
  *
  * @param item 製品
@@ -90,12 +99,14 @@ function getMaxSpaceArea(spaces: FreeSpace[]): number {
  * @param item 製品
  * @param space 空きスペース
  * @param cutConfig 切断設定
+ * @param strategy 回転戦略（デフォルト: 'max-space'）
  * @returns 配置可能性の判定結果
  */
 export function decideRotation(
   item: Item,
   space: FreeSpace,
-  cutConfig: CutConfig
+  cutConfig: CutConfig,
+  strategy: RotationStrategy = 'max-space'
 ): CanPlaceResult {
   const canPlaceWithoutRotation = canPlace(item, space, cutConfig, false)
   const canPlaceWithRotation = canPlace(item, space, cutConfig, true)
@@ -124,20 +135,51 @@ export function decideRotation(
     }
   }
 
-  // 両方配置可能な場合、残スペース最大化ヒューリスティックで判定
-  const spacesWithoutRotation = simulatePlacement(item, space, cutConfig, false)
-  const maxSpaceWithoutRotation = getMaxSpaceArea(spacesWithoutRotation)
+  // 両方配置可能な場合、戦略に応じて判定
+  let rotated = false
 
-  const spacesWithRotation = simulatePlacement(item, space, cutConfig, true)
-  const maxSpaceWithRotation = getMaxSpaceArea(spacesWithRotation)
+  switch (strategy) {
+    case 'max-space': {
+      // 残スペース最大化ヒューリスティック
+      const spacesWithoutRotation = simulatePlacement(item, space, cutConfig, false)
+      const maxSpaceWithoutRotation = getMaxSpaceArea(spacesWithoutRotation)
 
-  // 最大空きスペースが大きい方を選択
-  // 同じ場合は回転なしを優先
-  const rotated = maxSpaceWithRotation > maxSpaceWithoutRotation
+      const spacesWithRotation = simulatePlacement(item, space, cutConfig, true)
+      const maxSpaceWithRotation = getMaxSpaceArea(spacesWithRotation)
+
+      // 最大空きスペースが大きい方を選択
+      // 同じ場合は回転なしを優先
+      rotated = maxSpaceWithRotation > maxSpaceWithoutRotation
+      break
+    }
+
+    case 'prefer-rotate':
+      // 回転優先
+      rotated = true
+      break
+
+    case 'no-rotate':
+      // 回転なし
+      rotated = false
+      break
+
+    case 'fit-space': {
+      // 空きスペースに合わせる（空きスペースが横長なら製品も横長に）
+      const spaceRatio = space.width / space.height
+      const itemRatio = item.width / item.height
+      const itemRatioRotated = item.height / item.width
+
+      // 空きスペースと製品のアスペクト比の差が小さい方を選択
+      const diffWithoutRotation = Math.abs(spaceRatio - itemRatio)
+      const diffWithRotation = Math.abs(spaceRatio - itemRatioRotated)
+
+      rotated = diffWithRotation < diffWithoutRotation
+      break
+    }
+  }
 
   return {
     canPlace: true,
     rotated,
-    maxSpaceArea: rotated ? maxSpaceWithRotation : maxSpaceWithoutRotation,
   }
 }

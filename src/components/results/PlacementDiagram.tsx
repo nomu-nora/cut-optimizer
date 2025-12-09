@@ -79,8 +79,9 @@ export function PlacementDiagram({
 
             {/* Placements */}
             {pattern.placements.map((placement, index) => {
-              const displayWidth = placement.rotated ? placement.height : placement.width
-              const displayHeight = placement.rotated ? placement.width : placement.height
+              // placement.width/height are already rotated sizes
+              const displayWidth = placement.width
+              const displayHeight = placement.height
 
               return (
                 <g key={`${placement.item.id}-${index}`}>

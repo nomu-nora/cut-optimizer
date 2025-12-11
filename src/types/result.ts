@@ -20,6 +20,8 @@ export interface PatternGroup {
   offcutInfo?: {
     name: string
     size: string
+    width: number
+    height: number
   }
 }
 

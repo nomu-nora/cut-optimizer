@@ -239,6 +239,8 @@ export function mergeResults(
     offcutInfo: {
       name: r.offcut.name,
       size: `${r.offcut.width}×${r.offcut.height}`,
+      width: r.offcut.width,
+      height: r.offcut.height,
     },
     count: r.platesUsed,
   }))

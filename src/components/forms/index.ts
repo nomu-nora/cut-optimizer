@@ -16,3 +16,11 @@ export type { PresetManagerProps } from './PresetManager'
 export { OptimizationGoalForm } from './OptimizationGoalForm'
 
 export { CalculationControl } from './CalculationControl'
+
+export { OffcutForm } from './OffcutForm'
+
+export { OffcutList } from './OffcutList'
+export type { OffcutListProps } from './OffcutList'
+
+export { OffcutPresetManager } from './OffcutPresetManager'
+export type { OffcutPresetManagerProps } from './OffcutPresetManager'

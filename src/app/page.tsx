@@ -9,12 +9,15 @@ import {
   ProductForm,
   PresetManager,
   CalculationControl,
+  OffcutForm,
+  OffcutList,
+  OffcutPresetManager,
 } from '@/components/forms'
 import { ResultSummary, PatternGroupList, PlacementDiagram, SkippedItemsDisplay } from '@/components/results'
 import { PrintButton, PrintPreview } from '@/components/print'
 import { Button, Card, Spinner, ErrorMessage, LoadingOverlay } from '@/components/ui'
-import { calculate, type OptimizationGoal } from '@/lib/algorithm/guillotine'
-import type { PlateConfig, CutConfig, Item, CalculationResult, PatternGroup } from '@/types'
+import { calculate, calculateWithOffcuts, type OptimizationGoal } from '@/lib/algorithm/guillotine'
+import type { PlateConfig, CutConfig, Item, OffcutPlate, CalculationResult, PatternGroup } from '@/types'
 import { DEFAULT_PLATE_CONFIG } from '@/types'
 
 const DEFAULT_CUT_CONFIG: CutConfig = {
@@ -33,6 +36,10 @@ export default function Home() {
   // Items state
   const [items, setItems] = useState<Item[]>([])
   const [editingItem, setEditingItem] = useState<Item | undefined>()
+
+  // Offcuts state
+  const [offcuts, setOffcuts] = useState<OffcutPlate[]>([])
+  const [editingOffcut, setEditingOffcut] = useState<OffcutPlate | undefined>()
 
   // Calculation state
   const [result, setResult] = useState<CalculationResult | null>(null)
@@ -77,6 +84,39 @@ export default function Home() {
     setSelectedPattern(undefined)
   }
 
+  const handleAddOffcut = (offcut: OffcutPlate) => {
+    if (editingOffcut) {
+      // Update existing offcut
+      setOffcuts(offcuts.map((o) => (o.id === offcut.id ? offcut : o)))
+      setEditingOffcut(undefined)
+    } else {
+      // Add new offcut
+      setOffcuts([...offcuts, offcut])
+    }
+  }
+
+  const handleEditOffcut = (offcut: OffcutPlate) => {
+    setEditingOffcut(offcut)
+  }
+
+  const handleDeleteOffcut = (offcutId: string) => {
+    setOffcuts(offcuts.filter((o) => o.id !== offcutId))
+    if (editingOffcut?.id === offcutId) {
+      setEditingOffcut(undefined)
+    }
+  }
+
+  const handleCancelEditOffcut = () => {
+    setEditingOffcut(undefined)
+  }
+
+  const handleLoadOffcutPreset = (presetOffcuts: OffcutPlate[]) => {
+    setOffcuts(presetOffcuts)
+    setEditingOffcut(undefined)
+    setResult(null)
+    setSelectedPattern(undefined)
+  }
+
   const handleCalculate = () => {
     if (items.length === 0) {
       setError('製品を追加してください')
@@ -89,14 +129,23 @@ export default function Home() {
     // Run calculation in a setTimeout to allow UI to update
     setTimeout(() => {
       try {
-        const calculationResult = calculate(
-          plateConfig,
-          cutConfig,
-          items,
-          optimizationGoal,
-          useGA,
-          useGridGrouping
-        )
+        // Use offcuts if available
+        const calculationResult = offcuts.length > 0
+          ? calculateWithOffcuts(
+              plateConfig,
+              cutConfig,
+              items,
+              offcuts,
+              optimizationGoal
+            )
+          : calculate(
+              plateConfig,
+              cutConfig,
+              items,
+              optimizationGoal,
+              useGA,
+              useGridGrouping
+            )
         setResult(calculationResult)
         setSelectedPattern(calculationResult.patterns[0])
         setError(null)
@@ -112,9 +161,11 @@ export default function Home() {
   const handleClearAll = () => {
     if (confirm('すべてのデータをクリアしますか？')) {
       setItems([])
+      setOffcuts([])
       setResult(null)
       setSelectedPattern(undefined)
       setEditingItem(undefined)
+      setEditingOffcut(undefined)
       setError(null)
     }
   }
@@ -153,11 +204,28 @@ export default function Home() {
               onDelete={handleDeleteItem}
             />
 
+            {/* Offcut Preset Manager */}
+            <OffcutPresetManager onLoadPreset={handleLoadOffcutPreset} />
+
+            {/* Offcut Form */}
+            <OffcutForm
+              editItem={editingOffcut}
+              onSubmit={handleAddOffcut}
+              onCancel={editingOffcut ? handleCancelEditOffcut : undefined}
+            />
+
+            {/* Offcut List */}
+            <OffcutList
+              offcuts={offcuts}
+              onEdit={handleEditOffcut}
+              onDelete={handleDeleteOffcut}
+            />
+
             {/* Clear Button */}
             <div className="flex justify-end">
               <Button
                 onClick={handleClearAll}
-                disabled={items.length === 0 && !result}
+                disabled={items.length === 0 && offcuts.length === 0 && !result}
                 variant="outline"
               >
                 すべてクリア
@@ -231,6 +299,7 @@ export default function Home() {
                   totalPlates={result.totalPlates}
                   averageYield={result.averageYield}
                   totalCost={result.totalCost}
+                  offcutUsage={result.offcutUsage}
                 />
 
                 {/* Print Button */}

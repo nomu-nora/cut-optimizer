@@ -50,17 +50,41 @@ export function PatternGroupList({
               <tr
                 key={pattern.patternId}
                 className={`hover:bg-gray-50 cursor-pointer ${
-                  selectedPatternId === pattern.patternId ? 'bg-blue-50' : ''
+                  selectedPatternId === pattern.patternId
+                    ? pattern.isOffcut
+                      ? 'bg-amber-50'
+                      : 'bg-blue-50'
+                    : ''
                 }`}
                 onClick={() => onSelectPattern?.(pattern)}
               >
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-600 text-white font-bold rounded">
-                    {pattern.patternId}
-                  </span>
+                  <div className="flex flex-col gap-1">
+                    <span
+                      className={`inline-flex items-center justify-center w-8 h-8 text-white font-bold rounded ${
+                        pattern.isOffcut ? 'bg-amber-600' : 'bg-blue-600'
+                      }`}
+                    >
+                      {pattern.patternId}
+                    </span>
+                    {pattern.isOffcut && pattern.offcutInfo && (
+                      <span className="text-xs text-amber-600">
+                        {pattern.offcutInfo.name}
+                      </span>
+                    )}
+                  </div>
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {pattern.count} 枚
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-gray-900">
+                      {pattern.count} 枚
+                    </span>
+                    {pattern.isOffcut && pattern.offcutInfo && (
+                      <span className="text-xs text-gray-500">
+                        ({pattern.offcutInfo.size}mm)
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                   {pattern.placements.length} 個

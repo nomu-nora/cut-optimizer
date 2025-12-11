@@ -12,15 +12,26 @@ export function PlacementDiagram({
   plateConfig,
   cutConfig,
 }: PlacementDiagramProps) {
+  // Use offcut dimensions if this is an offcut pattern
+  const plateWidth = pattern.isOffcut && pattern.offcutInfo
+    ? pattern.offcutInfo.width
+    : plateConfig.width
+  const plateHeight = pattern.isOffcut && pattern.offcutInfo
+    ? pattern.offcutInfo.height
+    : plateConfig.height
+
+  // Offcuts have no margin (already cut)
+  const margin = pattern.isOffcut ? 0 : cutConfig.margin
+
   const SCALE = 0.4 // Scale factor to fit diagram on screen
-  const viewWidth = plateConfig.width * SCALE
-  const viewHeight = plateConfig.height * SCALE
+  const viewWidth = plateWidth * SCALE
+  const viewHeight = plateHeight * SCALE
 
   // Calculate effective area (with margins)
-  const effectiveX = cutConfig.margin
-  const effectiveY = cutConfig.margin
-  const effectiveWidth = plateConfig.width - cutConfig.margin * 2
-  const effectiveHeight = plateConfig.height - cutConfig.margin * 2
+  const effectiveX = margin
+  const effectiveY = margin
+  const effectiveWidth = plateWidth - margin * 2
+  const effectiveHeight = plateHeight - margin * 2
 
   return (
     <Card title={`配置図 - パターン ${pattern.patternId}`}>
@@ -50,7 +61,7 @@ export function PlacementDiagram({
           <svg
             width={viewWidth}
             height={viewHeight}
-            viewBox={`0 0 ${plateConfig.width} ${plateConfig.height}`}
+            viewBox={`0 0 ${plateWidth} ${plateHeight}`}
             className="mx-auto"
             style={{ maxWidth: '100%', height: 'auto' }}
           >
@@ -58,10 +69,10 @@ export function PlacementDiagram({
             <rect
               x={0}
               y={0}
-              width={plateConfig.width}
-              height={plateConfig.height}
-              fill="#f9fafb"
-              stroke="#d1d5db"
+              width={plateWidth}
+              height={plateHeight}
+              fill={pattern.isOffcut ? '#fffbeb' : '#f9fafb'}
+              stroke={pattern.isOffcut ? '#f59e0b' : '#d1d5db'}
               strokeWidth={2}
             />
 

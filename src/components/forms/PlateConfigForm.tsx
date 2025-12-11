@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Input, Card } from '@/components/ui'
+import { Input } from '@/components/ui'
 import type { PlateConfig } from '@/types'
 import { DEFAULT_PLATE_CONFIG } from '@/types'
 
@@ -54,44 +54,42 @@ export function PlateConfigForm({
   }
 
   return (
-    <Card title="元板設定">
-      <div className="space-y-4">
-        <Input
-          label="元板の幅 (mm)"
-          type="number"
-          value={config.width || ''}
-          onChange={(e) => handleChange('width', e.target.value)}
-          error={errors.width}
-          fullWidth
-          min="0"
-          step="1"
-          placeholder="例: 1820"
-        />
+    <div className="space-y-4">
+      <Input
+        label="元板の幅 (mm)"
+        type="number"
+        value={config.width || ''}
+        onChange={(e) => handleChange('width', e.target.value)}
+        error={errors.width}
+        fullWidth
+        min="0"
+        step="1"
+        placeholder="例: 1820"
+      />
 
-        <Input
-          label="元板の高さ (mm)"
-          type="number"
-          value={config.height || ''}
-          onChange={(e) => handleChange('height', e.target.value)}
-          error={errors.height}
-          fullWidth
-          min="0"
-          step="1"
-          placeholder="例: 910"
-        />
+      <Input
+        label="元板の高さ (mm)"
+        type="number"
+        value={config.height || ''}
+        onChange={(e) => handleChange('height', e.target.value)}
+        error={errors.height}
+        fullWidth
+        min="0"
+        step="1"
+        placeholder="例: 910"
+      />
 
-        <Input
-          label="元板の単価 (円)"
-          type="number"
-          value={config.unitPrice || ''}
-          onChange={(e) => handleChange('unitPrice', e.target.value)}
-          error={errors.unitPrice}
-          fullWidth
-          min="0"
-          step="1"
-          placeholder="例: 2000"
-        />
-      </div>
-    </Card>
+      <Input
+        label="元板の単価 (円)"
+        type="number"
+        value={config.unitPrice || ''}
+        onChange={(e) => handleChange('unitPrice', e.target.value)}
+        error={errors.unitPrice}
+        fullWidth
+        min="0"
+        step="1"
+        placeholder="例: 2000"
+      />
+    </div>
   )
 }

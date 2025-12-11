@@ -14,18 +14,6 @@ export interface OffcutPreset {
   offcuts: OffcutPlate[]
 }
 
-// ベージュ系の色を生成（端材用）
-const generateBeigeColor = (index: number): string => {
-  const beigeColors = [
-    '#F5E6D3', // ライトベージュ
-    '#E8D5C4', // サンドベージュ
-    '#DCC5B0', // ウォームベージュ
-    '#D4B5A0', // タンベージュ
-    '#C9A88A', // カーキベージュ
-  ]
-  return beigeColors[index % beigeColors.length]
-}
-
 export const DEFAULT_PRESETS: Preset[] = [
   {
     id: 'preset-2',
@@ -140,7 +128,6 @@ export const DEFAULT_OFFCUT_PRESETS: OffcutPreset[] = [
         width: 400,
         height: 300,
         quantity: 2,
-        color: generateBeigeColor(0),
       },
       {
         id: uuidv4(),
@@ -148,7 +135,6 @@ export const DEFAULT_OFFCUT_PRESETS: OffcutPreset[] = [
         width: 350,
         height: 250,
         quantity: 3,
-        color: generateBeigeColor(1),
       },
       {
         id: uuidv4(),
@@ -156,7 +142,6 @@ export const DEFAULT_OFFCUT_PRESETS: OffcutPreset[] = [
         width: 280,
         height: 220,
         quantity: 2,
-        color: generateBeigeColor(2),
       },
     ],
   },
@@ -170,7 +155,6 @@ export const DEFAULT_OFFCUT_PRESETS: OffcutPreset[] = [
         width: 700,
         height: 450,
         quantity: 1,
-        color: generateBeigeColor(0),
       },
       {
         id: uuidv4(),
@@ -178,7 +162,6 @@ export const DEFAULT_OFFCUT_PRESETS: OffcutPreset[] = [
         width: 550,
         height: 350,
         quantity: 2,
-        color: generateBeigeColor(1),
       },
       {
         id: uuidv4(),
@@ -186,7 +169,6 @@ export const DEFAULT_OFFCUT_PRESETS: OffcutPreset[] = [
         width: 400,
         height: 300,
         quantity: 2,
-        color: generateBeigeColor(2),
       },
     ],
   },

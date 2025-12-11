@@ -34,7 +34,7 @@ export function PlacementDiagram({
   const effectiveHeight = plateHeight - margin * 2
 
   return (
-    <Card title={`配置図 - パターン ${pattern.patternId}`}>
+    <Card title={`配置図 - パターン ${pattern.patternId}${pattern.isOffcut && pattern.offcutInfo ? ` (${pattern.offcutInfo.name})` : ''}`}>
       <div className="space-y-4">
         {/* Diagram info */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
@@ -43,8 +43,8 @@ export function PlacementDiagram({
             <p className="font-bold text-gray-900">{pattern.patternId}</p>
           </div>
           <div className="bg-gray-50 p-2 rounded">
-            <p className="text-gray-600 text-xs">枚数</p>
-            <p className="font-bold text-gray-900">{pattern.count} 枚</p>
+            <p className="text-gray-600 text-xs">{pattern.isOffcut ? '端材サイズ' : '元板サイズ'}</p>
+            <p className="font-bold text-gray-900">{plateWidth}×{plateHeight}mm</p>
           </div>
           <div className="bg-gray-50 p-2 rounded">
             <p className="text-gray-600 text-xs">製品数</p>
@@ -71,8 +71,8 @@ export function PlacementDiagram({
               y={0}
               width={plateWidth}
               height={plateHeight}
-              fill={pattern.isOffcut ? '#fffbeb' : '#f9fafb'}
-              stroke={pattern.isOffcut ? '#f59e0b' : '#d1d5db'}
+              fill="#f9fafb"
+              stroke="#d1d5db"
               strokeWidth={2}
             />
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { Button, Card, Input, Label } from '@/components/ui'
+import { Button, Card, Input } from '@/components/ui'
 import type { OffcutPlate } from '@/types'
 
 interface OffcutFormProps {
@@ -10,16 +10,6 @@ interface OffcutFormProps {
   onSubmit: (offcut: OffcutPlate) => void
   onCancel?: () => void
 }
-
-// ベージュ系の色（端材用）
-const BEIGE_PALETTE = [
-  '#F5E6D3', // ライトベージュ
-  '#E8D5C4', // サンドベージュ
-  '#DCC5B0', // ウォームベージュ
-  '#D4B5A0', // タンベージュ
-  '#C9A88A', // カーキベージュ
-  '#BCA080', // ダークベージュ
-]
 
 interface FormErrors {
   name?: string
@@ -35,7 +25,6 @@ export function OffcutForm({ editItem, onSubmit, onCancel }: OffcutFormProps) {
     width: 0,
     height: 0,
     quantity: 1,
-    color: BEIGE_PALETTE[0],
   })
 
   const [errors, setErrors] = useState<FormErrors>({})
@@ -92,7 +81,6 @@ export function OffcutForm({ editItem, onSubmit, onCancel }: OffcutFormProps) {
         width: 0,
         height: 0,
         quantity: 1,
-        color: BEIGE_PALETTE[0],
       })
       setErrors({})
     }
@@ -158,26 +146,6 @@ export function OffcutForm({ editItem, onSubmit, onCancel }: OffcutFormProps) {
             step="1"
             placeholder="1"
           />
-        </div>
-
-        <div>
-          <Label className="mb-2">色</Label>
-          <div className="grid grid-cols-6 gap-2">
-            {BEIGE_PALETTE.map((color) => (
-              <button
-                key={color}
-                type="button"
-                onClick={() => handleChange('color', color)}
-                className={`w-10 h-10 rounded border-2 transition-all ${
-                  formData.color === color
-                    ? 'border-blue-600 ring-2 ring-blue-300'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
-                style={{ backgroundColor: color }}
-                title={color}
-              />
-            ))}
-          </div>
         </div>
 
         <div className="flex gap-2 pt-2">

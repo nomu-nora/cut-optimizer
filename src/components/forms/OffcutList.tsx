@@ -27,9 +27,6 @@ export function OffcutList({ offcuts, onEdit, onDelete }: OffcutListProps) {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                色
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 端材名
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -49,13 +46,6 @@ export function OffcutList({ offcuts, onEdit, onDelete }: OffcutListProps) {
           <tbody className="bg-white divide-y divide-gray-200">
             {offcuts.map((offcut) => (
               <tr key={offcut.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <div
-                    className="w-8 h-8 rounded border border-gray-300"
-                    style={{ backgroundColor: offcut.color }}
-                    title={offcut.color}
-                  />
-                </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                   {offcut.name}
                 </td>

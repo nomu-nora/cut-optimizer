@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Input, Card } from '@/components/ui'
+import { Input } from '@/components/ui'
 import type { CutConfig } from '@/types'
 
 const DEFAULT_CUT_CONFIG: CutConfig = {
@@ -55,34 +55,32 @@ export function CutConfigForm({
   }
 
   return (
-    <Card title="カット設定">
-      <div className="space-y-4">
-        <Input
-          label="カット幅 (mm)"
-          type="number"
-          value={config.cutWidth || ''}
-          onChange={(e) => handleChange('cutWidth', e.target.value)}
-          error={errors.cutWidth}
-          helperText="製品と製品の間のカット幅"
-          fullWidth
-          min="0"
-          step="0.1"
-          placeholder="例: 4"
-        />
+    <div className="space-y-4">
+      <Input
+        label="カット幅 (mm)"
+        type="number"
+        value={config.cutWidth || ''}
+        onChange={(e) => handleChange('cutWidth', e.target.value)}
+        error={errors.cutWidth}
+        helperText="製品と製品の間のカット幅"
+        fullWidth
+        min="0"
+        step="0.1"
+        placeholder="例: 4"
+      />
 
-        <Input
-          label="余白 (mm)"
-          type="number"
-          value={config.margin || ''}
-          onChange={(e) => handleChange('margin', e.target.value)}
-          error={errors.margin}
-          helperText="元板の四辺に設ける余白"
-          fullWidth
-          min="0"
-          step="1"
-          placeholder="例: 20"
-        />
-      </div>
-    </Card>
+      <Input
+        label="余白 (mm)"
+        type="number"
+        value={config.margin || ''}
+        onChange={(e) => handleChange('margin', e.target.value)}
+        error={errors.margin}
+        helperText="元板の四辺に設ける余白"
+        fullWidth
+        min="0"
+        step="1"
+        placeholder="例: 20"
+      />
+    </div>
   )
 }

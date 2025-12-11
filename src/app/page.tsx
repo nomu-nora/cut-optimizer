@@ -15,7 +15,7 @@ import {
 } from '@/components/forms'
 import { ResultSummary, PatternGroupList, PlacementDiagram, SkippedItemsDisplay } from '@/components/results'
 import { PrintButton, PrintPreview } from '@/components/print'
-import { Button, Card, Spinner, ErrorMessage, LoadingOverlay } from '@/components/ui'
+import { Button, Spinner, ErrorMessage, LoadingOverlay, Card } from '@/components/ui'
 import { calculate, calculateWithOffcuts, type OptimizationGoal } from '@/lib/algorithm/guillotine'
 import type { PlateConfig, CutConfig, Item, OffcutPlate, CalculationResult, PatternGroup } from '@/types'
 import { DEFAULT_PLATE_CONFIG } from '@/types'
@@ -176,49 +176,54 @@ export default function Home() {
       <MainLayout
         inputArea={
           <div className="space-y-4">
-            {/* Configuration Forms */}
-            <PlateConfigForm
-              initialConfig={plateConfig}
-              onChange={setPlateConfig}
-            />
+            {/* Configuration Forms - Combined */}
+            <Card title="元板・カット設定">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">元板設定</h3>
+                  <PlateConfigForm
+                    initialConfig={plateConfig}
+                    onChange={setPlateConfig}
+                  />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">カット設定</h3>
+                  <CutConfigForm
+                    initialConfig={cutConfig}
+                    onChange={setCutConfig}
+                  />
+                </div>
+              </div>
+            </Card>
 
-            <CutConfigForm
-              initialConfig={cutConfig}
-              onChange={setCutConfig}
-            />
-
-            {/* Preset Manager */}
-            <PresetManager onLoadPreset={handleLoadPreset} />
-
-            {/* Product Form */}
-            <ProductForm
-              editItem={editingItem}
-              onSubmit={handleAddItem}
-              onCancel={editingItem ? handleCancelEdit : undefined}
-            />
-
-            {/* Product List */}
-            <ProductList
-              items={items}
-              onEdit={handleEditItem}
-              onDelete={handleDeleteItem}
-            />
-
-            {/* Offcut Preset Manager */}
+            {/* Offcut Section */}
             <OffcutPresetManager onLoadPreset={handleLoadOffcutPreset} />
 
-            {/* Offcut Form */}
             <OffcutForm
               editItem={editingOffcut}
               onSubmit={handleAddOffcut}
               onCancel={editingOffcut ? handleCancelEditOffcut : undefined}
             />
 
-            {/* Offcut List */}
             <OffcutList
               offcuts={offcuts}
               onEdit={handleEditOffcut}
               onDelete={handleDeleteOffcut}
+            />
+
+            {/* Product Section */}
+            <PresetManager onLoadPreset={handleLoadPreset} />
+
+            <ProductForm
+              editItem={editingItem}
+              onSubmit={handleAddItem}
+              onCancel={editingItem ? handleCancelEdit : undefined}
+            />
+
+            <ProductList
+              items={items}
+              onEdit={handleEditItem}
+              onDelete={handleDeleteItem}
             />
 
             {/* Clear Button */}
@@ -296,10 +301,9 @@ export default function Home() {
 
                 {/* Result Summary */}
                 <ResultSummary
-                  totalPlates={result.totalPlates}
-                  averageYield={result.averageYield}
-                  totalCost={result.totalCost}
-                  offcutUsage={result.offcutUsage}
+                  result={result}
+                  registeredOffcutCount={offcuts.reduce((sum, o) => sum + o.quantity, 0)}
+                  totalItemQuantity={items.reduce((sum, i) => sum + i.quantity, 0)}
                 />
 
                 {/* Print Button */}

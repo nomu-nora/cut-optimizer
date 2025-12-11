@@ -85,7 +85,7 @@
 
 **関連ドキュメント**:
 
-- [v1.1設計書](./docs/v1.1-design.md)
+- [v1.1設計書](./docs/versions/v1.1-design.md)
 
 ---
 
@@ -121,7 +121,7 @@ GA・グリッド配置・余りスペース最適化による実用性向上。
 
 **関連ドキュメント**:
 
-- [v1.2設計書](./docs/v1.2-design.md)
+- [v1.2設計書](./docs/versions/v1.2-design.md)
 
 ---
 
@@ -361,8 +361,9 @@ GA・グリッド配置・余りスペース最適化による実用性向上。
 
 - [GitHub Repository](https://github.com/nomu-nora/cut-optimizer)
 - [v1.0要件定義書](./docs/torikazu_app_requirements_v1.0.md)
-- [v1.1設計書](./docs/v1.1-design.md)
-- [v1.2設計書](./docs/v1.2-design.md)
+- [v1.1設計書](./docs/versions/v1.1-design.md)
+- [v1.2設計書](./docs/versions/v1.2-design.md)
+- [v1.3設計書](./docs/versions/v1.3-design.md)
 - [アーキテクチャ設計書](./docs/architecture.md)
 
 ---

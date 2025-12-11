@@ -1,10 +1,7 @@
 import { Card, Button } from '@/components/ui'
-import { AlgorithmSelector, type AlgorithmType } from './AlgorithmSelector'
 import type { OptimizationGoal } from '@/lib/algorithm/guillotine'
 
 interface CalculationControlProps {
-  algorithm: AlgorithmType
-  onAlgorithmChange: (algorithm: AlgorithmType) => void
   optimizationGoal: OptimizationGoal
   onOptimizationGoalChange: (goal: OptimizationGoal) => void
   useGA: boolean
@@ -17,8 +14,6 @@ interface CalculationControlProps {
 }
 
 export function CalculationControl({
-  algorithm,
-  onAlgorithmChange,
   optimizationGoal,
   onOptimizationGoalChange,
   useGA,
@@ -32,14 +27,6 @@ export function CalculationControl({
   return (
     <Card title="計算実行">
       <div className="space-y-4">
-        {/* Algorithm Selection */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            アルゴリズム
-          </label>
-          <AlgorithmSelector value={algorithm} onChange={onAlgorithmChange} />
-        </div>
-
         {/* Optimization Goal & Options */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Optimization Goal */}

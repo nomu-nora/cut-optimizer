@@ -9,7 +9,6 @@ import {
   ProductForm,
   PresetManager,
   CalculationControl,
-  type AlgorithmType,
 } from '@/components/forms'
 import { ResultSummary, PatternGroupList, PlacementDiagram, SkippedItemsDisplay } from '@/components/results'
 import { PrintButton, PrintPreview } from '@/components/print'
@@ -27,7 +26,6 @@ export default function Home() {
   // Configuration state
   const [plateConfig, setPlateConfig] = useState<PlateConfig>(DEFAULT_PLATE_CONFIG)
   const [cutConfig, setCutConfig] = useState<CutConfig>(DEFAULT_CUT_CONFIG)
-  const [algorithm, setAlgorithm] = useState<AlgorithmType>('maximal-rectangles')
   const [optimizationGoal, setOptimizationGoal] = useState<OptimizationGoal>('yield')
   const [useGA, setUseGA] = useState(false)
   const [useGridGrouping, setUseGridGrouping] = useState(false)
@@ -95,7 +93,7 @@ export default function Home() {
           plateConfig,
           cutConfig,
           items,
-          algorithm,
+          'maximal-rectangles',
           optimizationGoal,
           useGA,
           useGridGrouping
@@ -172,8 +170,6 @@ export default function Home() {
           <div className="space-y-4">
             {/* Calculation Control */}
             <CalculationControl
-              algorithm={algorithm}
-              onAlgorithmChange={setAlgorithm}
               optimizationGoal={optimizationGoal}
               onOptimizationGoalChange={setOptimizationGoal}
               useGA={useGA}

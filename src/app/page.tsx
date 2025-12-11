@@ -93,7 +93,6 @@ export default function Home() {
           plateConfig,
           cutConfig,
           items,
-          'maximal-rectangles',
           optimizationGoal,
           useGA,
           useGridGrouping

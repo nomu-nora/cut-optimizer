@@ -8,6 +8,7 @@ import type {
   FreeSpace,
   CalculationResult,
   SkippedItem,
+  OffcutPlate,
 } from '@/types'
 import { expandItems, sortByStrategy, type SortStrategy } from './sort'
 import { decideRotation, type RotationStrategy } from './placement'
@@ -19,6 +20,11 @@ import {
   type OptimizationGoal,
 } from './maximal-rectangles'
 import { optimizeWithGA } from './genetic-algorithm'
+import {
+  placeOnOffcuts,
+  getRemainingItems,
+  mergeResults,
+} from './offcut-placement'
 
 /**
  * 配置戦略の組み合わせ
@@ -343,12 +349,11 @@ function calculateGuillotine(
 }
 
 /**
- * 配置計算のメイン関数
+ * 配置計算のメイン関数（Maximal Rectanglesアルゴリズムを使用）
  *
  * @param plateConfig 元板設定
  * @param cutConfig 切断設定
  * @param items 製品リスト
- * @param algorithm 使用するアルゴリズム（デフォルト: maximal-rectangles）
  * @param optimizationGoal 最適化目標（デフォルト: yield）
  * @param useGA GAを使用するかどうか（デフォルト: false）
  * @param useGridGrouping グリッドグルーピングを使用するかどうか（デフォルト: false）
@@ -358,23 +363,60 @@ export function calculate(
   plateConfig: PlateConfig,
   cutConfig: CutConfig,
   items: Item[],
-  algorithm: Algorithm = 'maximal-rectangles',
   optimizationGoal: OptimizationGoal = 'yield',
   useGA: boolean = false,
   useGridGrouping: boolean = false
 ): CalculationResult {
-  if (algorithm === 'maximal-rectangles') {
-    // GAを使用する場合
-    if (useGA) {
-      return optimizeWithGA(plateConfig, cutConfig, items, optimizationGoal, useGridGrouping)
-    }
-
-    // 通常のMaximal Rectangles
-    return calculateMaximalRectangles(plateConfig, cutConfig, items, optimizationGoal, useGridGrouping)
+  // GAを使用する場合
+  if (useGA) {
+    return optimizeWithGA(plateConfig, cutConfig, items, optimizationGoal, useGridGrouping)
   }
 
-  // ギロチンカットを使用
-  return calculateGuillotine(plateConfig, cutConfig, items)
+  // 通常のMaximal Rectangles
+  return calculateMaximalRectangles(plateConfig, cutConfig, items, optimizationGoal, useGridGrouping)
+}
+
+/**
+ * 端材を優先的に使用して計算する（v1.3）
+ *
+ * @param plateConfig 元板設定
+ * @param cutConfig 切断設定
+ * @param items 製品リスト
+ * @param offcuts 端材リスト
+ * @param optimizationGoal 最適化目標
+ * @returns 計算結果（端材使用情報付き）
+ */
+export function calculateWithOffcuts(
+  plateConfig: PlateConfig,
+  cutConfig: CutConfig,
+  items: Item[],
+  offcuts: OffcutPlate[],
+  optimizationGoal: OptimizationGoal = 'yield'
+): CalculationResult {
+  // 端材がない場合は通常の計算
+  if (offcuts.length === 0) {
+    return calculate(plateConfig, cutConfig, items, optimizationGoal, false, false)
+  }
+
+  // 1. 端材に製品を配置
+  const offcutResults = placeOnOffcuts(offcuts, items, cutConfig, optimizationGoal)
+
+  // 2. 残った製品を取得
+  const remainingItems = getRemainingItems(items, offcutResults)
+
+  // 3. 残った製品で新規元板を計算
+  const newPlateResults = remainingItems.length > 0
+    ? calculate(plateConfig, cutConfig, remainingItems, optimizationGoal, false, false)
+    : {
+        patterns: [],
+        totalPlates: 0,
+        averageYield: 0,
+        totalCost: 0,
+        skippedItems: [],
+      }
+
+  // 4. 結果を統合
+  return mergeResults(offcutResults, newPlateResults, offcuts, plateConfig)
 }
 
 // OptimizationGoal型をエクスポート

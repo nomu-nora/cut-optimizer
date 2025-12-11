@@ -1,4 +1,5 @@
 import type { Placement } from './algorithm'
+import type { OffcutUsage } from './offcut'
 
 /**
  * パターングループの情報
@@ -13,6 +14,13 @@ export interface PatternGroup {
   count: number
   /** 歩留まり率（%） */
   yield: number
+  /** 端材パターンかどうか */
+  isOffcut?: boolean
+  /** 端材情報（端材パターンの場合） */
+  offcutInfo?: {
+    name: string
+    size: string
+  }
 }
 
 /**
@@ -29,6 +37,8 @@ export interface CalculationResult {
   totalCost: number
   /** 計算されなかった製品（元板より大きい製品など） */
   skippedItems?: SkippedItem[]
+  /** 端材使用情報 */
+  offcutUsage?: OffcutUsage
 }
 
 /**

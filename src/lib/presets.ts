@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid'
-import type { Item } from '@/types'
+import type { Item, OffcutPlate } from '@/types'
 import { COLOR_PALETTE } from '@/types'
 
 export interface Preset {
@@ -8,37 +8,25 @@ export interface Preset {
   items: Item[]
 }
 
+export interface OffcutPreset {
+  id: string
+  name: string
+  offcuts: OffcutPlate[]
+}
+
+// ベージュ系の色を生成（端材用）
+const generateBeigeColor = (index: number): string => {
+  const beigeColors = [
+    '#F5E6D3', // ライトベージュ
+    '#E8D5C4', // サンドベージュ
+    '#DCC5B0', // ウォームベージュ
+    '#D4B5A0', // タンベージュ
+    '#C9A88A', // カーキベージュ
+  ]
+  return beigeColors[index % beigeColors.length]
+}
+
 export const DEFAULT_PRESETS: Preset[] = [
-  {
-    id: 'preset-1',
-    name: '基本テスト',
-    items: [
-      {
-        id: uuidv4(),
-        name: '天板A',
-        width: 600,
-        height: 400,
-        quantity: 5,
-        color: COLOR_PALETTE[0],
-      },
-      {
-        id: uuidv4(),
-        name: '天板B',
-        width: 800,
-        height: 300,
-        quantity: 3,
-        color: COLOR_PALETTE[1],
-      },
-      {
-        id: uuidv4(),
-        name: '側板',
-        width: 450,
-        height: 350,
-        quantity: 8,
-        color: COLOR_PALETTE[2],
-      },
-    ],
-  },
   {
     id: 'preset-2',
     name: '小さい製品',
@@ -70,100 +58,8 @@ export const DEFAULT_PRESETS: Preset[] = [
     ],
   },
   {
-    id: 'preset-3',
-    name: '大きい製品',
-    items: [
-      {
-        id: uuidv4(),
-        name: '大型天板',
-        width: 1200,
-        height: 600,
-        quantity: 2,
-        color: COLOR_PALETTE[6],
-      },
-      {
-        id: uuidv4(),
-        name: '大型側板',
-        width: 1000,
-        height: 700,
-        quantity: 3,
-        color: COLOR_PALETTE[7],
-      },
-    ],
-  },
-  {
-    id: 'preset-4',
-    name: '複雑な配置（GA推奨）',
-    items: [
-      {
-        id: uuidv4(),
-        name: 'パネルA',
-        width: 500,
-        height: 400,
-        quantity: 8,
-        color: COLOR_PALETTE[0],
-      },
-      {
-        id: uuidv4(),
-        name: 'パネルB',
-        width: 700,
-        height: 350,
-        quantity: 6,
-        color: COLOR_PALETTE[1],
-      },
-      {
-        id: uuidv4(),
-        name: 'パネルC',
-        width: 600,
-        height: 300,
-        quantity: 7,
-        color: COLOR_PALETTE[2],
-      },
-      {
-        id: uuidv4(),
-        name: 'パネルD',
-        width: 450,
-        height: 450,
-        quantity: 5,
-        color: COLOR_PALETTE[3],
-      },
-      {
-        id: uuidv4(),
-        name: 'パネルE',
-        width: 550,
-        height: 250,
-        quantity: 6,
-        color: COLOR_PALETTE[4],
-      },
-      {
-        id: uuidv4(),
-        name: 'パネルF',
-        width: 400,
-        height: 350,
-        quantity: 7,
-        color: COLOR_PALETTE[5],
-      },
-      {
-        id: uuidv4(),
-        name: 'パネルG',
-        width: 380,
-        height: 280,
-        quantity: 5,
-        color: COLOR_PALETTE[6],
-      },
-      {
-        id: uuidv4(),
-        name: 'パネルH',
-        width: 520,
-        height: 320,
-        quantity: 4,
-        color: COLOR_PALETTE[7],
-      },
-    ],
-  },
-  {
     id: 'preset-5',
-    name: '実践的配置（GA必須）',
+    name: '実践的配置',
     items: [
       {
         id: uuidv4(),
@@ -228,6 +124,69 @@ export const DEFAULT_PRESETS: Preset[] = [
         height: 200,
         quantity: 10,
         color: COLOR_PALETTE[7],
+      },
+    ],
+  },
+]
+
+export const DEFAULT_OFFCUT_PRESETS: OffcutPreset[] = [
+  {
+    id: 'offcut-preset-1',
+    name: '小型端材（小物向け）',
+    offcuts: [
+      {
+        id: uuidv4(),
+        name: '端材A',
+        width: 400,
+        height: 300,
+        quantity: 2,
+        color: generateBeigeColor(0),
+      },
+      {
+        id: uuidv4(),
+        name: '端材B',
+        width: 350,
+        height: 250,
+        quantity: 3,
+        color: generateBeigeColor(1),
+      },
+      {
+        id: uuidv4(),
+        name: '端材C',
+        width: 280,
+        height: 220,
+        quantity: 2,
+        color: generateBeigeColor(2),
+      },
+    ],
+  },
+  {
+    id: 'offcut-preset-2',
+    name: 'テスト用セット',
+    offcuts: [
+      {
+        id: uuidv4(),
+        name: '端材A（大）',
+        width: 700,
+        height: 450,
+        quantity: 1,
+        color: generateBeigeColor(0),
+      },
+      {
+        id: uuidv4(),
+        name: '端材B（中）',
+        width: 550,
+        height: 350,
+        quantity: 2,
+        color: generateBeigeColor(1),
+      },
+      {
+        id: uuidv4(),
+        name: '端材C（小）',
+        width: 400,
+        height: 300,
+        quantity: 2,
+        color: generateBeigeColor(2),
       },
     ],
   },

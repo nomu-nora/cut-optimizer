@@ -21,3 +21,6 @@ export type {
   SkippedItem,
   CalculationStats,
 } from './result'
+
+// 端材関連の型
+export type { OffcutPlate, OffcutUsageInfo, OffcutUsage } from './offcut'

@@ -38,9 +38,7 @@ export function SkippedItemsDisplay({ skippedItems }: SkippedItemsDisplayProps) 
             </svg>
           </div>
           <div className="ml-3 flex-1">
-            <h3 className="text-sm font-medium text-yellow-800">
-              スキップされた製品があります
-            </h3>
+            <h3 className="text-sm font-medium text-yellow-800">スキップされた製品があります</h3>
             <div className="mt-2">
               <div className="space-y-2">
                 {skippedItems.map((item, index) => (
@@ -50,15 +48,9 @@ export function SkippedItemsDisplay({ skippedItems }: SkippedItemsDisplayProps) 
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {item.itemName}
-                        </p>
-                        <p className="text-xs text-gray-600 mt-1">
-                          {item.message}
-                        </p>
-                        <p className="text-xs text-yellow-700 mt-1">
-                          {getReasonText(item.reason)}
-                        </p>
+                        <p className="text-sm font-medium text-gray-900">{item.itemName}</p>
+                        <p className="text-xs text-gray-600 mt-1">{item.message}</p>
+                        <p className="text-xs text-yellow-700 mt-1">{getReasonText(item.reason)}</p>
                       </div>
                     </div>
                   </div>

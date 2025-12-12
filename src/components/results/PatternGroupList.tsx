@@ -15,9 +15,7 @@ export function PatternGroupList({
   if (patterns.length === 0) {
     return (
       <Card title="パターン一覧">
-        <p className="text-gray-500 text-center py-8">
-          計算結果がありません
-        </p>
+        <p className="text-gray-500 text-center py-8">計算結果がありません</p>
       </Card>
     )
   }
@@ -68,21 +66,15 @@ export function PatternGroupList({
                       {pattern.patternId}
                     </span>
                     {pattern.isOffcut && pattern.offcutInfo && (
-                      <span className="text-xs text-amber-600">
-                        {pattern.offcutInfo.name}
-                      </span>
+                      <span className="text-xs text-amber-600">{pattern.offcutInfo.name}</span>
                     )}
                   </div>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex flex-col gap-1">
-                    <span className="text-sm font-medium text-gray-900">
-                      {pattern.count} 枚
-                    </span>
+                    <span className="text-sm font-medium text-gray-900">{pattern.count} 枚</span>
                     {pattern.isOffcut && pattern.offcutInfo && (
-                      <span className="text-xs text-gray-500">
-                        ({pattern.offcutInfo.size}mm)
-                      </span>
+                      <span className="text-xs text-gray-500">({pattern.offcutInfo.size}mm)</span>
                     )}
                   </div>
                 </td>

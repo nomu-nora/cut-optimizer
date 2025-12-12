@@ -17,7 +17,9 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         {...props}
       >
         {title && (
-          <div className={`border-b border-gray-200 ${noPadding ? 'px-4 sm:px-6 py-4' : 'pb-4 mb-4'}`}>
+          <div
+            className={`border-b border-gray-200 ${noPadding ? 'px-4 sm:px-6 py-4' : 'pb-4 mb-4'}`}
+          >
             <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
           </div>
         )}

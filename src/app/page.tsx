@@ -13,11 +13,24 @@ import {
   OffcutList,
   OffcutPresetManager,
 } from '@/components/forms'
-import { ResultSummary, PatternGroupList, PlacementDiagram, SkippedItemsDisplay } from '@/components/results'
+import {
+  ResultSummary,
+  PatternGroupList,
+  PlacementDiagram,
+  SkippedItemsDisplay,
+} from '@/components/results'
 import { PrintButton, PrintPreview } from '@/components/print'
 import { Button, Spinner, ErrorMessage, LoadingOverlay, Card } from '@/components/ui'
 import { calculate, calculateWithOffcuts, type OptimizationGoal } from '@/lib/algorithm/guillotine'
-import type { PlateConfig, CutConfig, Item, OffcutPlate, CalculationResult, PatternGroup } from '@/types'
+import type {
+  PlateConfig,
+  CutConfig,
+  Item,
+  OffcutPlate,
+  CalculationResult,
+  PatternGroup,
+  OffcutMode,
+} from '@/types'
 import { DEFAULT_PLATE_CONFIG } from '@/types'
 
 const DEFAULT_CUT_CONFIG: CutConfig = {
@@ -29,9 +42,10 @@ export default function Home() {
   // Configuration state
   const [plateConfig, setPlateConfig] = useState<PlateConfig>(DEFAULT_PLATE_CONFIG)
   const [cutConfig, setCutConfig] = useState<CutConfig>(DEFAULT_CUT_CONFIG)
-  const [optimizationGoal, setOptimizationGoal] = useState<OptimizationGoal>('yield')
+  const [optimizationGoal, setOptimizationGoal] = useState<OptimizationGoal>('remaining-space')
   const [useGA, setUseGA] = useState(false)
-  const [useGridGrouping, setUseGridGrouping] = useState(false)
+  const [useGridGrouping, setUseGridGrouping] = useState(true)
+  const [offcutMode, setOffcutMode] = useState<OffcutMode>('consumption')
 
   // Items state
   const [items, setItems] = useState<Item[]>([])
@@ -130,22 +144,17 @@ export default function Home() {
     setTimeout(() => {
       try {
         // Use offcuts if available
-        const calculationResult = offcuts.length > 0
-          ? calculateWithOffcuts(
-              plateConfig,
-              cutConfig,
-              items,
-              offcuts,
-              optimizationGoal
-            )
-          : calculate(
-              plateConfig,
-              cutConfig,
-              items,
-              optimizationGoal,
-              useGA,
-              useGridGrouping
-            )
+        const calculationResult =
+          offcuts.length > 0
+            ? calculateWithOffcuts(
+                plateConfig,
+                cutConfig,
+                items,
+                offcuts,
+                optimizationGoal,
+                offcutMode
+              )
+            : calculate(plateConfig, cutConfig, items, optimizationGoal, useGA, useGridGrouping)
         setResult(calculationResult)
         setSelectedPattern(calculationResult.patterns[0])
         setError(null)
@@ -181,17 +190,11 @@ export default function Home() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">元板設定</h3>
-                  <PlateConfigForm
-                    initialConfig={plateConfig}
-                    onChange={setPlateConfig}
-                  />
+                  <PlateConfigForm initialConfig={plateConfig} onChange={setPlateConfig} />
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">カット設定</h3>
-                  <CutConfigForm
-                    initialConfig={cutConfig}
-                    onChange={setCutConfig}
-                  />
+                  <CutConfigForm initialConfig={cutConfig} onChange={setCutConfig} />
                 </div>
               </div>
             </Card>
@@ -205,11 +208,7 @@ export default function Home() {
               onCancel={editingOffcut ? handleCancelEditOffcut : undefined}
             />
 
-            <OffcutList
-              offcuts={offcuts}
-              onEdit={handleEditOffcut}
-              onDelete={handleDeleteOffcut}
-            />
+            <OffcutList offcuts={offcuts} onEdit={handleEditOffcut} onDelete={handleDeleteOffcut} />
 
             {/* Product Section */}
             <PresetManager onLoadPreset={handleLoadPreset} />
@@ -220,11 +219,7 @@ export default function Home() {
               onCancel={editingItem ? handleCancelEdit : undefined}
             />
 
-            <ProductList
-              items={items}
-              onEdit={handleEditItem}
-              onDelete={handleDeleteItem}
-            />
+            <ProductList items={items} onEdit={handleEditItem} onDelete={handleDeleteItem} />
 
             {/* Clear Button */}
             <div className="flex justify-end">
@@ -248,18 +243,16 @@ export default function Home() {
               onUseGAChange={setUseGA}
               useGridGrouping={useGridGrouping}
               onUseGridGroupingChange={setUseGridGrouping}
+              offcutMode={offcutMode}
+              onOffcutModeChange={setOffcutMode}
+              hasOffcuts={offcuts.length > 0}
               onCalculate={handleCalculate}
               isCalculating={isCalculating}
               disabled={items.length === 0}
             />
 
             {/* Error Display */}
-            {error && (
-              <ErrorMessage
-                message={error}
-                onRetry={() => setError(null)}
-              />
-            )}
+            {error && <ErrorMessage message={error} onRetry={() => setError(null)} />}
 
             {!result && !isCalculating && (
               <Card>
@@ -341,6 +334,8 @@ export default function Home() {
           result={result}
           plateConfig={plateConfig}
           cutConfig={cutConfig}
+          items={items}
+          offcuts={offcuts}
           onClose={() => setShowPrintPreview(false)}
         />
       )}

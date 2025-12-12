@@ -60,20 +60,12 @@ export function OffcutList({ offcuts, onEdit, onDelete }: OffcutListProps) {
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-right text-sm space-x-2">
                   {onEdit && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEdit(offcut)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => onEdit(offcut)}>
                       編集
                     </Button>
                   )}
                   {onDelete && (
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => onDelete(offcut.id)}
-                    >
+                    <Button variant="danger" size="sm" onClick={() => onDelete(offcut.id)}>
                       削除
                     </Button>
                   )}

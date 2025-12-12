@@ -159,13 +159,20 @@ export const DEFAULT_OFFCUT_PRESETS: OffcutPreset[] = [
       {
         id: uuidv4(),
         name: '端材B（中）',
+        width: 605,
+        height: 405,
+        quantity: 2,
+      },
+      {
+        id: uuidv4(),
+        name: '端材C（中）',
         width: 550,
         height: 350,
         quantity: 2,
       },
       {
         id: uuidv4(),
-        name: '端材C（小）',
+        name: '端材D（小）',
         width: 400,
         height: 300,
         quantity: 2,

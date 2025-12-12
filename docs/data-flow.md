@@ -130,14 +130,14 @@ deleteItem(id: string)
 // 製品の色割り当て
 function assignColor(itemName: string, existingItems: Item[]): string {
   // 既存の製品と同じ名前があれば、同じ色を使う
-  const existingItem = existingItems.find(i => i.name === itemName)
+  const existingItem = existingItems.find((i) => i.name === itemName)
   if (existingItem) {
     return existingItem.color
   }
 
   // 新しい製品の場合、ランダムな色を生成
   // ただし、既に使われている色と重複しないようにする
-  const usedColors = existingItems.map(i => i.color)
+  const usedColors = existingItems.map((i) => i.color)
   let newColor: string
   do {
     newColor = generateRandomColor()
@@ -149,9 +149,18 @@ function assignColor(itemName: string, existingItems: Item[]): string {
 // ランダム色生成（視覚的に区別しやすい色）
 function generateRandomColor(): string {
   const palette = [
-    '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
-    '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2',
-    '#F8B739', '#52B788', '#E76F51', '#2A9D8F'
+    '#FF6B6B',
+    '#4ECDC4',
+    '#45B7D1',
+    '#FFA07A',
+    '#98D8C8',
+    '#F7DC6F',
+    '#BB8FCE',
+    '#85C1E2',
+    '#F8B739',
+    '#52B788',
+    '#E76F51',
+    '#2A9D8F',
   ]
   return palette[Math.floor(Math.random() * palette.length)]
 }
@@ -209,7 +218,6 @@ function calculate(
   cutConfig: CutConfig,
   items: Item[]
 ): CalculationResult {
-
   // STEP 1: 前処理
   // 製品リストを展開（個数分に複製）
   const expandedItems = expandItems(items)
@@ -253,7 +261,7 @@ function calculate(
     patterns,
     totalPlates,
     averageYield,
-    totalCost
+    totalCost,
   }
 }
 ```
@@ -261,12 +269,7 @@ function calculate(
 ### 3.3 配置計算の詳細フロー
 
 ```typescript
-function tryPlaceItem(
-  plate: Plate,
-  item: Item,
-  cutConfig: CutConfig
-): boolean {
-
+function tryPlaceItem(plate: Plate, item: Item, cutConfig: CutConfig): boolean {
   // 利用可能な空きスペースを取得
   const spaces = plate.freeSpaces
 
@@ -302,7 +305,7 @@ function placeItem(
     y: space.y,
     width: rotated ? item.height : item.width,
     height: rotated ? item.width : item.height,
-    rotated
+    rotated,
   }
 
   // 2. 元板に配置を追加
@@ -315,7 +318,7 @@ function placeItem(
   const newSpaces = splitSpace(space, placement, cutConfig.cutWidth)
 
   // 使用したスペースを削除
-  plate.freeSpaces = plate.freeSpaces.filter(s => s !== space)
+  plate.freeSpaces = plate.freeSpaces.filter((s) => s !== space)
 
   // 新しい空きスペースを追加
   plate.freeSpaces.push(...newSpaces)
@@ -345,7 +348,7 @@ function groupPatterns(plates: Plate[]): PatternGroup[] {
         patternId: generatePatternId(groups.size), // A, B, C...
         placements: plate.placements,
         count: 1,
-        yield: plate.yield
+        yield: plate.yield,
       })
     }
   }
@@ -356,7 +359,7 @@ function groupPatterns(plates: Plate[]): PatternGroup[] {
 function createPatternHash(placements: Placement[]): string {
   // 配置パターンを一意に識別するハッシュを生成
   const sorted = placements
-    .map(p => `${p.item.name}_${p.x}_${p.y}_${p.width}_${p.height}`)
+    .map((p) => `${p.item.name}_${p.x}_${p.y}_${p.width}_${p.height}`)
     .sort()
     .join('|')
 
@@ -381,7 +384,7 @@ useEffect(() => {
     renderPatternList(result.patterns)
 
     // 3. 各パターンの配置図を描画
-    result.patterns.forEach(pattern => {
+    result.patterns.forEach((pattern) => {
       renderPlateVisualization(pattern)
     })
   }
@@ -461,7 +464,7 @@ canvas.addEventListener('mousemove', (event) => {
     showTooltip({
       name: hoveredPlacement.item.name,
       size: `${hoveredPlacement.width} × ${hoveredPlacement.height}`,
-      position: { x: event.clientX, y: event.clientY }
+      position: { x: event.clientX, y: event.clientY },
     })
   } else {
     hideTooltip()
@@ -583,14 +586,14 @@ AppProvider (Context)
 
 ### 5.3 Props vs Context の使い分け
 
-| データ種別 | 伝達方法 | 理由 |
-|-----------|---------|------|
-| グローバル設定（plateConfig, cutConfig） | Context | 複数コンポーネントで参照・更新 |
-| 製品リスト（items） | Context | 複数コンポーネントで参照・更新 |
-| 計算結果（result） | Context | 複数コンポーネントで参照 |
-| UI表示状態（isCalculating） | Context | グローバルなローディング状態 |
-| 個別製品の表示（ItemCard） | Props | 親から子への一方向の伝達 |
-| パターンの表示（PatternCard） | Props | 親から子への一方向の伝達 |
+| データ種別                               | 伝達方法 | 理由                           |
+| ---------------------------------------- | -------- | ------------------------------ |
+| グローバル設定（plateConfig, cutConfig） | Context  | 複数コンポーネントで参照・更新 |
+| 製品リスト（items）                      | Context  | 複数コンポーネントで参照・更新 |
+| 計算結果（result）                       | Context  | 複数コンポーネントで参照       |
+| UI表示状態（isCalculating）              | Context  | グローバルなローディング状態   |
+| 個別製品の表示（ItemCard）               | Props    | 親から子への一方向の伝達       |
+| パターンの表示（PatternCard）            | Props    | 親から子への一方向の伝達       |
 
 ---
 
@@ -605,7 +608,7 @@ useEffect(() => {
     plateConfig,
     cutConfig,
     items,
-    timestamp: Date.now()
+    timestamp: Date.now(),
   }
 
   try {
@@ -632,7 +635,7 @@ function loadFromLocalStorage(): Partial<AppState> | null {
       return {
         plateConfig: data.plateConfig,
         cutConfig: data.cutConfig,
-        items: data.items
+        items: data.items,
       }
     }
   } catch (error) {
@@ -652,16 +655,16 @@ function loadFromLocalStorage(): Partial<AppState> | null {
 ```typescript
 // エラーの種類
 type ErrorType =
-  | 'VALIDATION_ERROR'      // 入力バリデーションエラー
-  | 'CALCULATION_ERROR'     // 計算処理エラー
-  | 'RENDER_ERROR'          // 描画エラー
-  | 'STORAGE_ERROR'         // ローカルストレージエラー
+  | 'VALIDATION_ERROR' // 入力バリデーションエラー
+  | 'CALCULATION_ERROR' // 計算処理エラー
+  | 'RENDER_ERROR' // 描画エラー
+  | 'STORAGE_ERROR' // ローカルストレージエラー
 
 interface AppError {
   type: ErrorType
   message: string
-  field?: string           // エラーが発生したフィールド
-  details?: any           // 詳細情報
+  field?: string // エラーが発生したフィールド
+  details?: any // 詳細情報
 }
 ```
 
@@ -738,21 +741,18 @@ function validateItems(
   plateConfig: PlateConfig,
   cutConfig: CutConfig
 ): ValidationResult {
-
   const validItems: Item[] = []
   const skippedItems: Item[] = []
   const warnings: ValidationWarning[] = []
 
   // 有効エリアの計算
-  const effectiveWidth = plateConfig.width - (cutConfig.margin * 2)
-  const effectiveHeight = plateConfig.height - (cutConfig.margin * 2)
+  const effectiveWidth = plateConfig.width - cutConfig.margin * 2
+  const effectiveHeight = plateConfig.height - cutConfig.margin * 2
 
   for (const item of items) {
     // 回転なし・回転ありの両方で元板より大きいかチェック
-    const fitsWithoutRotation =
-      item.width <= effectiveWidth && item.height <= effectiveHeight
-    const fitsWithRotation =
-      item.height <= effectiveWidth && item.width <= effectiveHeight
+    const fitsWithoutRotation = item.width <= effectiveWidth && item.height <= effectiveHeight
+    const fitsWithRotation = item.height <= effectiveWidth && item.width <= effectiveHeight
 
     if (!fitsWithoutRotation && !fitsWithRotation) {
       // 両方とも入らない場合、スキップ
@@ -760,8 +760,9 @@ function validateItems(
         type: 'ITEM_TOO_LARGE',
         itemId: item.id,
         itemName: item.name,
-        message: `製品「${item.name}」(${item.width}×${item.height}mm)は` +
-                 `元板(${effectiveWidth}×${effectiveHeight}mm)より大きいため計算できません。`
+        message:
+          `製品「${item.name}」(${item.width}×${item.height}mm)は` +
+          `元板(${effectiveWidth}×${effectiveHeight}mm)より大きいため計算できません。`,
       })
       skippedItems.push(item)
     } else {
@@ -814,6 +815,7 @@ function validateItems(
 ```
 
 **将来の拡張（v3.0以降）**:
+
 - 分割裁断機能を実装し、大きい製品を自動分割して配置
 
 ---
@@ -900,7 +902,7 @@ function preparePrintData(result: CalculationResult) {
   // Canvas要素をSVGまたは画像に変換
   const canvases = document.querySelectorAll('.plate-canvas')
 
-  canvases.forEach(canvas => {
+  canvases.forEach((canvas) => {
     // Canvasの内容を画像として保存
     const dataUrl = canvas.toDataURL('image/png')
 
@@ -969,6 +971,7 @@ function preparePrintData(result: CalculationResult) {
 ---
 
 **Issue #2 完了条件**:
+
 - [x] 入力フローの詳細設計
 - [x] 計算フローの詳細設計
 - [x] 表示フローの詳細設計

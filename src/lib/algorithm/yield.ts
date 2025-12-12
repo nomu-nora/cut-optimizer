@@ -8,10 +8,7 @@ import type { Plate, PlateConfig, CutConfig } from '@/types'
  * @param cutConfig 切断設定
  * @returns 有効エリアの面積（mm²）
  */
-export function calculateEffectiveArea(
-  plateConfig: PlateConfig,
-  cutConfig: CutConfig
-): number {
+export function calculateEffectiveArea(plateConfig: PlateConfig, cutConfig: CutConfig): number {
   const effectiveWidth = plateConfig.width - cutConfig.margin * 2
   const effectiveHeight = plateConfig.height - cutConfig.margin * 2
   return effectiveWidth * effectiveHeight

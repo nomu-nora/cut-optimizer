@@ -59,31 +59,19 @@ export function ProductList({ items, onEdit, onDelete }: ProductListProps) {
                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                   {item.name}
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                  {item.width}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
-                  {item.height}
-                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{item.width}</td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{item.height}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                   {item.quantity}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-right text-sm space-x-2">
                   {onEdit && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onEdit(item)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => onEdit(item)}>
                       編集
                     </Button>
                   )}
                   {onDelete && (
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => onDelete(item.id)}
-                    >
+                    <Button variant="danger" size="sm" onClick={() => onDelete(item.id)}>
                       削除
                     </Button>
                   )}

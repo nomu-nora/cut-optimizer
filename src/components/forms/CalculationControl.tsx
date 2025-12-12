@@ -1,5 +1,6 @@
 import { Card, Button } from '@/components/ui'
 import type { OptimizationGoal } from '@/lib/algorithm/guillotine'
+import type { OffcutMode } from '@/types'
 
 interface CalculationControlProps {
   optimizationGoal: OptimizationGoal
@@ -8,6 +9,9 @@ interface CalculationControlProps {
   onUseGAChange: (useGA: boolean) => void
   useGridGrouping: boolean
   onUseGridGroupingChange: (useGridGrouping: boolean) => void
+  offcutMode: OffcutMode
+  onOffcutModeChange: (mode: OffcutMode) => void
+  hasOffcuts: boolean
   onCalculate: () => void
   isCalculating: boolean
   disabled?: boolean
@@ -20,6 +24,9 @@ export function CalculationControl({
   onUseGAChange,
   useGridGrouping,
   onUseGridGroupingChange,
+  offcutMode,
+  onOffcutModeChange,
+  hasOffcuts,
   onCalculate,
   isCalculating,
   disabled = false,
@@ -31,9 +38,7 @@ export function CalculationControl({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Optimization Goal */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              最適化目標
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">最適化目標</label>
             <div className="space-y-2">
               <label className="flex items-start cursor-pointer">
                 <input
@@ -69,9 +74,7 @@ export function CalculationControl({
 
           {/* Options */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              オプション
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">オプション</label>
             <div className="space-y-2">
               <label className="flex items-start cursor-pointer">
                 <input
@@ -82,9 +85,7 @@ export function CalculationControl({
                 />
                 <div className="flex-1">
                   <span className="font-medium">グリッド配置</span>
-                  <p className="text-xs text-gray-500">
-                    同じサイズの製品を格子状にまとめて配置
-                  </p>
+                  <p className="text-xs text-gray-500">同じサイズの製品を格子状にまとめて配置</p>
                 </div>
               </label>
 
@@ -105,6 +106,48 @@ export function CalculationControl({
             </div>
           </div>
         </div>
+
+        {/* Offcut Mode (only show when offcuts are registered) */}
+        {hasOffcuts && (
+          <div className="pt-4 border-t border-gray-200">
+            <label className="block text-sm font-medium text-gray-700 mb-2">端材処理モード</label>
+            <div className="space-y-2">
+              <label className="flex items-start cursor-pointer">
+                <input
+                  type="radio"
+                  name="offcutMode"
+                  value="consumption"
+                  checked={offcutMode === 'consumption'}
+                  onChange={(e) => onOffcutModeChange(e.target.value as OffcutMode)}
+                  className="mt-0.5 mr-2"
+                />
+                <div className="flex-1">
+                  <span className="font-medium">端材消費モード</span>
+                  <p className="text-xs text-gray-500">
+                    端材ごとに最高歩留まりの製品を選択（端材を優先的に消費）
+                  </p>
+                </div>
+              </label>
+
+              <label className="flex items-start cursor-pointer">
+                <input
+                  type="radio"
+                  name="offcutMode"
+                  value="optimization"
+                  checked={offcutMode === 'optimization'}
+                  onChange={(e) => onOffcutModeChange(e.target.value as OffcutMode)}
+                  className="mt-0.5 mr-2"
+                />
+                <div className="flex-1">
+                  <span className="font-medium">全体最適モード</span>
+                  <p className="text-xs text-gray-500">
+                    全体の平均歩留まりを最大化（端材は必要に応じて使用）
+                  </p>
+                </div>
+              </label>
+            </div>
+          </div>
+        )}
 
         {/* Calculate Button */}
         <div className="pt-2">

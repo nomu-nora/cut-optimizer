@@ -9,17 +9,20 @@
 ## 1. 技術スタック
 
 ### フロントエンド
+
 - **フレームワーク**: Next.js 14+ (App Router)
 - **言語**: TypeScript
 - **スタイリング**: Tailwind CSS
 - **UI描画**: Canvas API or SVG
 
 ### 開発環境
+
 - **エディタ**: Cursor
 - **パッケージマネージャー**: npm
 - **バージョン管理**: Git + GitHub
 
 ### デプロイ
+
 - **ホスティング**: Vercel
 
 ---
@@ -59,12 +62,14 @@
 ### 2.2 主要モジュール
 
 #### 入力モジュール
+
 - 元板設定フォーム
 - 切断設定フォーム
 - 製品入力フォーム
 - バリデーション
 
 #### 計算モジュール
+
 - ソート処理
 - 配置判定ロジック
 - スペース分割ロジック
@@ -72,6 +77,7 @@
 - 歩留まり計算
 
 #### 表示モジュール
+
 - サマリー表示
 - パターンカード
 - 配置図描画 (Canvas/SVG)
@@ -217,6 +223,7 @@ cut-optimizer/
 **v1.0では、シンプルさを優先し、React Hooks（useState, useReducer）を使用**
 
 理由：
+
 - アプリケーションの規模が小さい（単一ページ）
 - コンポーネント間の状態共有が限定的
 - 複雑な状態管理ライブラリは不要
@@ -224,19 +231,25 @@ cut-optimizer/
 ### 5.2 状態の分類
 
 #### ローカル状態（useState）
+
 各コンポーネント内で完結する状態
+
 - フォーム入力値
 - UI表示状態（開閉、選択など）
 
 #### グローバル状態（Context API）
+
 複数コンポーネントで共有する状態
+
 - 元板設定 (PlateConfig)
 - 切断設定 (CutConfig)
 - 製品リスト (Item[])
 - 計算結果 (CalculationResult)
 
 #### 永続化状態（LocalStorage）
+
 ブラウザに保存する状態
+
 - 入力データの自動保存
 
 ### 5.3 Context構成
@@ -245,27 +258,28 @@ cut-optimizer/
 // AppContext: アプリケーション全体の状態を管理
 const AppContext = React.createContext<{
   // 入力データ
-  plateConfig: PlateConfig;
-  cutConfig: CutConfig;
-  items: Item[];
+  plateConfig: PlateConfig
+  cutConfig: CutConfig
+  items: Item[]
 
   // 計算結果
-  result: CalculationResult | null;
+  result: CalculationResult | null
 
   // アクション
-  setPlateConfig: (config: PlateConfig) => void;
-  setCutConfig: (config: CutConfig) => void;
-  addItem: (item: Item) => void;
-  updateItem: (id: string, item: Item) => void;
-  deleteItem: (id: string) => void;
-  calculate: () => void;
-  clearAll: () => void;
-}>();
+  setPlateConfig: (config: PlateConfig) => void
+  setCutConfig: (config: CutConfig) => void
+  addItem: (item: Item) => void
+  updateItem: (id: string, item: Item) => void
+  deleteItem: (id: string) => void
+  calculate: () => void
+  clearAll: () => void
+}>()
 ```
 
 ### 5.4 将来の拡張性
 
 v2.0以降でデータベース対応やログイン機能を追加する際は、以下を検討：
+
 - **Zustand**: より高度な状態管理
 - **React Query**: サーバー状態管理
 - **Jotai/Recoil**: アトミックな状態管理
@@ -325,35 +339,30 @@ function calculate(
   cutConfig: CutConfig,
   items: Item[]
 ): CalculationResult {
-
   // 1. 入力データの検証
-  validate(plateConfig, cutConfig, items);
+  validate(plateConfig, cutConfig, items)
 
   // 2. 製品をソート（面積順）
-  const sortedItems = sortByArea(items);
+  const sortedItems = sortByArea(items)
 
   // 3. 配置計算
-  const plates = guillotineCut(
-    plateConfig,
-    cutConfig,
-    sortedItems
-  );
+  const plates = guillotineCut(plateConfig, cutConfig, sortedItems)
 
   // 4. パターングループ化
-  const patterns = groupPatterns(plates);
+  const patterns = groupPatterns(plates)
 
   // 5. 統計情報の計算
-  const totalPlates = plates.length;
-  const averageYield = calculateAverageYield(plates);
-  const totalCost = totalPlates * plateConfig.unitPrice;
+  const totalPlates = plates.length
+  const averageYield = calculateAverageYield(plates)
+  const totalCost = totalPlates * plateConfig.unitPrice
 
   // 6. 結果を返す
   return {
     patterns,
     totalPlates,
     averageYield,
-    totalCost
-  };
+    totalCost,
+  }
 }
 ```
 
@@ -437,6 +446,7 @@ function calculate(
 **選択: Canvas**
 
 理由：
+
 - 大量の矩形描画でパフォーマンスが良い
 - 印刷時の解像度制御が容易
 - インタラクティブ機能は最小限（v1.0）
@@ -446,6 +456,7 @@ function calculate(
 **選択: Context API**
 
 理由：
+
 - アプリケーション規模が小さい
 - 追加ライブラリなしで実装可能
 - 学習コストが低い
@@ -455,6 +466,7 @@ function calculate(
 **選択: Tailwind CSS**
 
 理由：
+
 - 高速な開発が可能
 - レスポンシブ対応が簡単
 - ユーティリティクラスで一貫性を保てる
@@ -472,6 +484,7 @@ function calculate(
 ---
 
 **Issue #1 完了条件**:
+
 - [x] コンポーネント構成の決定
 - [x] ディレクトリ構造の詳細設計
 - [x] 状態管理方針の決定

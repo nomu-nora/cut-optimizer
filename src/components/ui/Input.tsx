@@ -12,7 +12,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || label?.toLowerCase().replace(/\s+/g, '-')
     const hasError = !!error
 
-    const baseStyles = 'block px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed'
+    const baseStyles =
+      'block px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed'
     const normalStyles = 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
     const errorStyles = 'border-red-500 focus:ring-red-500 focus:border-red-500'
     const widthStyle = fullWidth ? 'w-full' : ''
@@ -30,12 +31,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           className={`${baseStyles} ${hasError ? errorStyles : normalStyles} ${widthStyle} ${className}`}
           {...props}
         />
-        {error && (
-          <p className="mt-1 text-sm text-red-600">{error}</p>
-        )}
-        {helperText && !error && (
-          <p className="mt-1 text-sm text-gray-500">{helperText}</p>
-        )}
+        {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+        {helperText && !error && <p className="mt-1 text-sm text-gray-500">{helperText}</p>}
       </div>
     )
   }

@@ -17,12 +17,7 @@ export function PrintButton({ onPrint, disabled = false }: PrintButtonProps) {
   }
 
   return (
-    <Button
-      onClick={handlePrint}
-      disabled={disabled}
-      variant="primary"
-      className="no-print"
-    >
+    <Button onClick={handlePrint} disabled={disabled} variant="primary" className="no-print">
       <svg
         className="w-5 h-5 mr-2 inline-block"
         fill="none"

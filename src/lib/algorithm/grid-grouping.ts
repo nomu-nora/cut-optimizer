@@ -69,10 +69,7 @@ function fitsInSpace(
  * @param minGroupSize 最小グループサイズ（この数以上あるグループのみ作成）
  * @returns サイズごとのアイテムグループ
  */
-export function groupItemsBySize(
-  items: Item[],
-  minGroupSize: number = 4
-): Map<string, Item[]> {
+export function groupItemsBySize(items: Item[], minGroupSize: number = 4): Map<string, Item[]> {
   const groups = new Map<string, Item[]>()
 
   for (const item of items) {
@@ -176,10 +173,7 @@ export function calculateOptimalGrid(
  * @param gridGroups グリッドグループリスト
  * @returns グループ化されなかったアイテムのリスト
  */
-export function extractUngroupedItems(
-  items: Item[],
-  gridGroups: GridGroup[]
-): Item[] {
+export function extractUngroupedItems(items: Item[], gridGroups: GridGroup[]): Item[] {
   const groupedItemIds = new Set<string>()
 
   for (const grid of gridGroups) {

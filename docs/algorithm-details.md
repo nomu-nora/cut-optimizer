@@ -77,7 +77,7 @@
 items.sort((a, b) => {
   const areaA = a.width * a.height
   const areaB = b.width * b.height
-  return areaB - areaA  // 降順
+  return areaB - areaA // 降順
 })
 ```
 
@@ -109,6 +109,7 @@ items.sort((a, b) => {
 ```
 
 **例**:
+
 ```
 製品A: 400×400 (面積 160,000) → アスペクト比 1.0
 製品B: 500×320 (面積 160,000) → アスペクト比 1.56
@@ -145,12 +146,7 @@ items.sort((a, b) => {
 **仕様**: 回転なし/ありの両方を試して、**配置後の最大空きスペースが大きくなる方**を選ぶ
 
 ```typescript
-function decideRotation(
-  item: Item,
-  space: FreeSpace,
-  cutConfig: CutConfig
-): boolean {
-
+function decideRotation(item: Item, space: FreeSpace, cutConfig: CutConfig): boolean {
   // 1. 回転なしで配置を試す
   if (canPlace(item, space, cutConfig, false)) {
     const spacesWithoutRotation = simulatePlacement(item, space, cutConfig, false)
@@ -163,12 +159,12 @@ function decideRotation(
 
       // 3. 最大空きスペースが大きい方を選ぶ
       if (maxSpaceWithRotation.area > maxSpaceWithoutRotation.area) {
-        return true  // 回転あり
+        return true // 回転あり
       }
     }
   }
 
-  return false  // 回転なし（または回転ありのみ可能な場合は別処理）
+  return false // 回転なし（または回転ありのみ可能な場合は別処理）
 }
 
 // 最大の空きスペースを取得
@@ -209,9 +205,9 @@ function getMaxSpace(spaces: FreeSpace[]): FreeSpace {
 
 ```typescript
 if (maxSpaceWithRotation.area > maxSpaceWithoutRotation.area) {
-  return true  // 回転あり
+  return true // 回転あり
 } else {
-  return false  // 同じまたは回転なしが良い場合
+  return false // 同じまたは回転なしが良い場合
 }
 ```
 
@@ -235,6 +231,7 @@ v1.0では計算速度とシンプルさを優先し、ヒューリスティッ�
 ### 4.1 現状の業務フロー
 
 **実家の業務**:
+
 - たまに元板より大きい製品の受注がある
 - 元板サイズはメーカーの固定サイズで、それより大きいものは用意されない
 - その場合、製品を分割裁断して複数の元板から切り取り、後でつなぐ
@@ -251,15 +248,14 @@ function validateItems(
   plateConfig: PlateConfig,
   cutConfig: CutConfig
 ): ValidationResult {
-
   const errors: ValidationError[] = []
   const warnings: ValidationWarning[] = []
   const validItems: Item[] = []
   const skippedItems: Item[] = []
 
   // 有効エリアの計算
-  const effectiveWidth = plateConfig.width - (cutConfig.margin * 2)
-  const effectiveHeight = plateConfig.height - (cutConfig.margin * 2)
+  const effectiveWidth = plateConfig.width - cutConfig.margin * 2
+  const effectiveHeight = plateConfig.height - cutConfig.margin * 2
 
   for (const item of items) {
     // 元板より大きい製品をチェック
@@ -269,7 +265,7 @@ function validateItems(
         warnings.push({
           type: 'ITEM_TOO_LARGE',
           itemId: item.id,
-          message: `製品「${item.name}」は元板より大きいため計算できません。この製品をスキップします。`
+          message: `製品「${item.name}」は元板より大きいため計算できません。この製品をスキップします。`,
         })
         skippedItems.push(item)
         continue
@@ -347,7 +343,7 @@ patterns.sort((a, b) => b.count - a.count)
 
 // パターンIDを割り当て
 patterns.forEach((pattern, index) => {
-  pattern.patternId = String.fromCharCode(65 + index)  // A, B, C...
+  pattern.patternId = String.fromCharCode(65 + index) // A, B, C...
 })
 ```
 
@@ -370,6 +366,7 @@ patterns.forEach((pattern, index) => {
 ```
 
 **理由**:
+
 - よく使うパターン（枚数が多い）を最初に表示
 - 実際の作業では、大きいものから切り出すため、枚数が多いパターンを先に確認したい
 
@@ -388,14 +385,14 @@ patterns.forEach((pattern, index) => {
 ```typescript
 function assignColor(itemName: string, existingItems: Item[]): string {
   // 既存の製品と同じ名前があれば、同じ色を使う
-  const existingItem = existingItems.find(i => i.name === itemName)
+  const existingItem = existingItems.find((i) => i.name === itemName)
   if (existingItem) {
     return existingItem.color
   }
 
   // 新しい製品の場合、未使用の色を選ぶ
-  const usedColors = new Set(existingItems.map(i => i.color))
-  const availableColors = COLOR_PALETTE.filter(c => !usedColors.has(c))
+  const usedColors = new Set(existingItems.map((i) => i.color))
+  const availableColors = COLOR_PALETTE.filter((c) => !usedColors.has(c))
 
   if (availableColors.length > 0) {
     return availableColors[Math.floor(Math.random() * availableColors.length)]
@@ -406,9 +403,18 @@ function assignColor(itemName: string, existingItems: Item[]): string {
 }
 
 const COLOR_PALETTE = [
-  '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A',
-  '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2',
-  '#F8B739', '#52B788', '#E76F51', '#2A9D8F'
+  '#FF6B6B',
+  '#4ECDC4',
+  '#45B7D1',
+  '#FFA07A',
+  '#98D8C8',
+  '#F7DC6F',
+  '#BB8FCE',
+  '#85C1E2',
+  '#F8B739',
+  '#52B788',
+  '#E76F51',
+  '#2A9D8F',
 ]
 ```
 
@@ -419,6 +425,7 @@ const COLOR_PALETTE = [
 ### 7.1 実家の業務規模
 
 **想定入力**:
+
 - 製品種類: 約10種類
 - 総個数: 30〜50個
 - 元板サイズ: 1820×910mm（サブロク板）
@@ -428,17 +435,18 @@ const COLOR_PALETTE = [
 
 ### 7.2 パフォーマンス目標
 
-| 項目 | 目標 |
-|------|------|
-| 計算時間 | 3秒以内 |
+| 項目     | 目標           |
+| -------- | -------------- |
+| 計算時間 | 3秒以内        |
 | UI応答性 | 即座（<100ms） |
-| 描画速度 | 1秒以内 |
+| 描画速度 | 1秒以内        |
 
 ---
 
 ### 7.3 スケーラビリティ
 
 v1.0での上限（目安）:
+
 - 製品種類: 20種類まで
 - 総個数: 100個まで
 - 元板枚数: 30枚まで
@@ -554,7 +562,7 @@ v1.0デプロイ後にテストして、問題なければプリセットを削�
 
 ```typescript
 // すべての製品が配置できなかった場合
-if (plates.length === 0 || plates.every(p => p.placements.length === 0)) {
+if (plates.length === 0 || plates.every((p) => p.placements.length === 0)) {
   throw new Error(
     '製品を配置できませんでした。元板サイズを大きくするか、製品サイズを小さくしてください。'
   )
@@ -572,20 +580,20 @@ function validateResult(items: Item[], result: CalculationResult): void {
   const placedCounts = new Map<string, number>()
 
   // 配置された個数をカウント
-  result.patterns.forEach(pattern => {
-    pattern.placements.forEach(placement => {
+  result.patterns.forEach((pattern) => {
+    pattern.placements.forEach((placement) => {
       const count = placedCounts.get(placement.item.id) || 0
       placedCounts.set(placement.item.id, count + 1)
     })
   })
 
   // 要求個数と比較
-  items.forEach(item => {
+  items.forEach((item) => {
     const placedCount = (placedCounts.get(item.id) || 0) * pattern.count
     if (placedCount < item.quantity) {
       console.warn(
         `製品「${item.name}」の配置個数が不足しています。` +
-        `要求: ${item.quantity}個, 配置: ${placedCount}個`
+          `要求: ${item.quantity}個, 配置: ${placedCount}個`
       )
     }
   })
@@ -596,8 +604,8 @@ function validateResult(items: Item[], result: CalculationResult): void {
 
 ## 11. 更新履歴
 
-| 日付 | 更新内容 |
-|------|---------|
+| 日付       | 更新内容                                    |
+| ---------- | ------------------------------------------- |
 | 2025-12-02 | 初版作成。Q&Aで明確になった仕様をすべて記録 |
 
 ---

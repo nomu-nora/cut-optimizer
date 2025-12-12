@@ -4,31 +4,37 @@
 **対象企業：** ノムラ合成株式会社  
 **作成日：** 2025年12月2日  
 **バージョン：** 1.0  
-**開発者：** こうへい  
+**開発者：** こうへい
 
 ---
 
 ## 1. プロジェクト概要
 
 ### 1.1 背景
+
 ノムラ合成株式会社では、受注した製品を元板から切り出す際、手作業で配置を計算している。これにより以下の課題が発生：
+
 - 計算に時間がかかる
 - 歩留まりが毎回バラバラ（最適解が不明）
 - 元板の無駄が発生
 
 ### 1.2 目的
+
 **v1.0のゴール：**
+
 - 元板サイズと切り出したい製品を入力すると、最適な配置と必要枚数を自動計算
 - 配置図を視覚的に表示し、印刷可能にする
 - 同じ配置パターンをまとめて表示
 - 歩留まり率とコストを計算
 
 **v1.0の方針：**
+
 - 「荒くても動く」を最優先
 - 矩形のみ対応（複雑形状は後回し）
 - 手動調整機能は後回し（まず自動計算の精度検証）
 
 ### 1.3 想定ユーザー
+
 - ノムラ合成の事務スタッフ
 - 製造スタッフ
 - 使用環境：PC（ブラウザ）、タブレット（将来的に）
@@ -40,6 +46,7 @@
 ### 2.1 入力機能
 
 #### 2.1.1 元板設定
+
 - **元板サイズ入力**
   - 幅（mm）：数値入力
   - 高さ（mm）：数値入力
@@ -51,6 +58,7 @@
   - デフォルト：0円（未入力でもOK）
 
 #### 2.1.2 切断設定
+
 - **カット幅（刃の幅）**
   - 数値入力（mm）
   - デフォルト：4mm
@@ -62,6 +70,7 @@
   - 説明：元板の端が傷ついている場合の保険
 
 #### 2.1.3 製品（アイテム）入力
+
 - **複数製品を登録可能**
 - 各製品ごとに以下を入力：
   - 製品名（例：アイテムA）
@@ -83,6 +92,7 @@
 ### 2.2 計算機能
 
 #### 2.2.1 配置計算アルゴリズム
+
 - **アルゴリズム：Guillotine Cut + First Fit Decreasing**
   - 製品を面積順にソート（大→小）
   - 元板に順番に配置
@@ -99,6 +109,7 @@
   - 端材管理システム導入時は端材優先で配置
 
 #### 2.2.2 計算結果
+
 - 必要な元板枚数
 - 各元板の配置パターン
 - 同じパターンの元板をグループ化（例：パターンA×5枚）
@@ -109,6 +120,7 @@
 ### 2.3 表示機能
 
 #### 2.3.1 配置図の表示
+
 - **視覚的な表示：**
   - 元板を枠で表示
   - 各製品を色分けして表示
@@ -121,6 +133,7 @@
   - パターンごとの歩留まり率を表示
 
 #### 2.3.2 結果サマリー
+
 - 必要元板枚数の合計
 - 全体の歩留まり率
 - 総コスト
@@ -129,6 +142,7 @@
 ### 2.4 印刷機能
 
 #### 2.4.1 印刷レイアウト
+
 - **グリッド形式：**
   - 2カラムまたは3カラム（元板サイズに応じて自動調整）
   - 各パターンを1つのカードとして表示
@@ -145,11 +159,13 @@
   - 必要に応じて複数ページに分割
 
 #### 2.4.2 印刷オプション
+
 - A4サイズ推奨（横 or 縦は自動判定）
 - ブラウザの印刷機能を使用
 - PDF出力対応
 
 ### 2.5 データ保存機能（v1.0では簡易実装）
+
 - ブラウザのローカルストレージに保存
 - 再度開いた時に前回の入力内容を復元
 - 計算履歴の保存は後回し（v1.5以降）
@@ -159,15 +175,18 @@
 ## 3. 非機能要件
 
 ### 3.1 パフォーマンス
+
 - 計算時間：3秒以内（製品50個、元板10枚程度まで）
 - レスポンシブデザイン対応（PC、タブレット）
 
 ### 3.2 ユーザビリティ
+
 - 直感的なUI（説明なしで使える）
 - エラーメッセージは分かりやすく
 - 入力ミスを防ぐバリデーション
 
 ### 3.3 拡張性
+
 - 将来的な機能追加を考慮した設計
   - 手動配置調整機能
   - 端材管理機能
@@ -181,21 +200,25 @@
 ### 4.1 基本構成
 
 **入力エリア：**
+
 - 元板設定（サイズ、単価）
 - 切断設定（カット幅、余白）
 - 製品入力フォーム
 - 登録済み製品リスト
 
 **結果表示エリア：**
+
 - サマリー（必要枚数、歩留まり、総コスト）
 - パターン一覧（グリッド表示）
 - 各パターンの配置図
 
 **アクション：**
+
 - 計算実行ボタン
 - 印刷ボタン
 
 ### 4.2 レイアウト方針
+
 - レスポンシブ対応（PC、タブレット）
 - 直感的な操作（説明不要）
 - 視覚的に分かりやすく
@@ -207,17 +230,20 @@
 ## 5. 技術スタック
 
 ### 5.1 基本構成
+
 - **フレームワーク：** Next.js（最新版）
 - **言語：** TypeScript
 - **スタイリング：** Tailwind CSS
 - **デプロイ：** Vercel
 
 ### 5.2 開発環境
+
 - **エディタ：** Cursor
 - **AI 支援：** Claude Code
 - **バージョン管理：** Git + GitHub
 
 ### 5.3 データ管理
+
 - **v1.0：** ブラウザのローカルストレージ
 - **将来：** データベース（Supabase等）
 
@@ -277,53 +303,46 @@
 
 ```typescript
 function canPlace(
-  rect: Rectangle,     // 製品のサイズ
-  space: FreeSpace,    // 空きスペース
-  cutWidth: number     // カット幅
+  rect: Rectangle, // 製品のサイズ
+  space: FreeSpace, // 空きスペース
+  cutWidth: number // カット幅
 ): boolean {
   // カット幅を考慮したサイズ
-  const requiredWidth = rect.width + cutWidth;
-  const requiredHeight = rect.height + cutWidth;
-  
+  const requiredWidth = rect.width + cutWidth
+  const requiredHeight = rect.height + cutWidth
+
   // 空きスペースに収まるか判定
-  return (
-    requiredWidth <= space.width &&
-    requiredHeight <= space.height
-  );
+  return requiredWidth <= space.width && requiredHeight <= space.height
 }
 ```
 
 #### 6.1.3 スペース分割ロジック
 
 ```typescript
-function splitSpace(
-  space: FreeSpace,
-  placedRect: Rectangle,
-  cutWidth: number
-): FreeSpace[] {
-  const newSpaces: FreeSpace[] = [];
-  
+function splitSpace(space: FreeSpace, placedRect: Rectangle, cutWidth: number): FreeSpace[] {
+  const newSpaces: FreeSpace[] = []
+
   // 横分割（右側に残る）
   if (space.width > placedRect.width + cutWidth) {
     newSpaces.push({
       x: space.x + placedRect.width + cutWidth,
       y: space.y,
       width: space.width - placedRect.width - cutWidth,
-      height: space.height
-    });
+      height: space.height,
+    })
   }
-  
+
   // 縦分割（下側に残る）
   if (space.height > placedRect.height + cutWidth) {
     newSpaces.push({
       x: space.x,
       y: space.y + placedRect.height + cutWidth,
       width: placedRect.width,
-      height: space.height - placedRect.height - cutWidth
-    });
+      height: space.height - placedRect.height - cutWidth,
+    })
   }
-  
-  return newSpaces;
+
+  return newSpaces
 }
 ```
 
@@ -331,18 +350,18 @@ function splitSpace(
 
 ```typescript
 function calculateYield(
-  baseArea: number,      // 元板の面積
-  usedArea: number,      // 配置した製品の面積合計
-  margin: number,        // 余白
-  cutWidth: number       // カット幅
+  baseArea: number, // 元板の面積
+  usedArea: number, // 配置した製品の面積合計
+  margin: number, // 余白
+  cutWidth: number // カット幅
 ): number {
   // 有効エリア
-  const effectiveWidth = baseWidth - (margin * 2);
-  const effectiveHeight = baseHeight - (margin * 2);
-  const effectiveArea = effectiveWidth * effectiveHeight;
-  
+  const effectiveWidth = baseWidth - margin * 2
+  const effectiveHeight = baseHeight - margin * 2
+  const effectiveArea = effectiveWidth * effectiveHeight
+
   // 歩留まり率 = 使用面積 / 有効エリア × 100
-  return (usedArea / effectiveArea) * 100;
+  return (usedArea / effectiveArea) * 100
 }
 ```
 
@@ -350,26 +369,26 @@ function calculateYield(
 
 ```typescript
 function groupPatterns(plates: Plate[]): PatternGroup[] {
-  const groups: Map<string, PatternGroup> = new Map();
-  
+  const groups: Map<string, PatternGroup> = new Map()
+
   for (const plate of plates) {
     // 配置パターンをハッシュ化
-    const patternHash = hashPattern(plate.placements);
-    
+    const patternHash = hashPattern(plate.placements)
+
     if (groups.has(patternHash)) {
       // 既存パターンに追加
-      groups.get(patternHash).count++;
+      groups.get(patternHash).count++
     } else {
       // 新規パターンとして登録
       groups.set(patternHash, {
         pattern: plate.placements,
         count: 1,
-        yield: plate.yield
-      });
+        yield: plate.yield,
+      })
     }
   }
-  
-  return Array.from(groups.values());
+
+  return Array.from(groups.values())
 }
 ```
 
@@ -382,68 +401,68 @@ function groupPatterns(plates: Plate[]): PatternGroup[] {
 ```typescript
 // 元板設定
 type PlateConfig = {
-  width: number;          // 幅（mm）
-  height: number;         // 高さ（mm）
-  unitPrice: number;      // 単価（円）
-};
+  width: number // 幅（mm）
+  height: number // 高さ（mm）
+  unitPrice: number // 単価（円）
+}
 
 // 切断設定
 type CutConfig = {
-  cutWidth: number;       // カット幅（mm）
-  margin: number;         // 両端余白（mm）
-};
+  cutWidth: number // カット幅（mm）
+  margin: number // 両端余白（mm）
+}
 
 // 製品（アイテム）
 type Item = {
-  id: string;             // 一意のID
-  name: string;           // 製品名
-  width: number;          // 幅（mm）
-  height: number;         // 高さ（mm）
-  quantity: number;       // 必要個数
-  color: string;          // 表示色（hex）
-};
+  id: string // 一意のID
+  name: string // 製品名
+  width: number // 幅（mm）
+  height: number // 高さ（mm）
+  quantity: number // 必要個数
+  color: string // 表示色（hex）
+}
 
 // 配置された製品
 type Placement = {
-  item: Item;             // 元の製品情報
-  x: number;              // 配置位置X
-  y: number;              // 配置位置Y
-  width: number;          // 配置時の幅（回転考慮）
-  height: number;         // 配置時の高さ（回転考慮）
-  rotated: boolean;       // 90度回転したか
-};
+  item: Item // 元の製品情報
+  x: number // 配置位置X
+  y: number // 配置位置Y
+  width: number // 配置時の幅（回転考慮）
+  height: number // 配置時の高さ（回転考慮）
+  rotated: boolean // 90度回転したか
+}
 
 // 空きスペース
 type FreeSpace = {
-  x: number;              // 左上X座標
-  y: number;              // 左上Y座標
-  width: number;          // 幅
-  height: number;         // 高さ
-};
+  x: number // 左上X座標
+  y: number // 左上Y座標
+  width: number // 幅
+  height: number // 高さ
+}
 
 // 元板（計算結果）
 type Plate = {
-  id: string;             // 元板ID
-  placements: Placement[]; // 配置された製品リスト
-  yield: number;          // 歩留まり率（%）
-  usedArea: number;       // 使用面積（mm²）
-};
+  id: string // 元板ID
+  placements: Placement[] // 配置された製品リスト
+  yield: number // 歩留まり率（%）
+  usedArea: number // 使用面積（mm²）
+}
 
 // パターングループ
 type PatternGroup = {
-  patternId: string;      // パターンID（A, B, C...）
-  placements: Placement[]; // 配置パターン
-  count: number;          // 同じパターンの枚数
-  yield: number;          // 歩留まり率
-};
+  patternId: string // パターンID（A, B, C...）
+  placements: Placement[] // 配置パターン
+  count: number // 同じパターンの枚数
+  yield: number // 歩留まり率
+}
 
 // 計算結果
 type CalculationResult = {
-  patterns: PatternGroup[]; // パターングループのリスト
-  totalPlates: number;      // 必要元板枚数
-  averageYield: number;     // 平均歩留まり率
-  totalCost: number;        // 総コスト
-};
+  patterns: PatternGroup[] // パターングループのリスト
+  totalPlates: number // 必要元板枚数
+  averageYield: number // 平均歩留まり率
+  totalCost: number // 総コスト
+}
 ```
 
 ---
@@ -451,17 +470,20 @@ type CalculationResult = {
 ## 8. 開発方針
 
 ### 8.1 MVP思考
+
 - v1.0は「動くこと」が最優先
 - 荒くても実家で使えればOK
 - フィードバック収集が目的
 
 ### 8.2 開発ログの記録
+
 - つまづいた点
 - AI への質問内容
 - 解決方法
-→ これがブログネタになる
+  → これがブログネタになる
 
 ### 8.3 横展開を見据えた設計
+
 - v1.0は実家専用でOK
 - でも設計は汎用性を考慮
 - 他社展開しやすい構造に
@@ -473,6 +495,7 @@ type CalculationResult = {
 ## 9. 今後の拡張予定
 
 ### v1.5
+
 - 手動配置調整機能
   - ドラッグ&ドロップで製品移動
   - 配置の微調整
@@ -480,6 +503,7 @@ type CalculationResult = {
   - 切り出し予定 vs 切り出し済みの個数確認
 
 ### v2.0
+
 - 端材管理機能
   - 端材サイズ・枚数の登録
   - 端材を優先的に使用
@@ -489,6 +513,7 @@ type CalculationResult = {
 - ログイン機能 + ユーザー管理
 
 ### v3.0
+
 - アルゴリズム改良
   - Maximal Rectangles アルゴリズム追加
   - アルゴリズム選択機能
@@ -496,12 +521,14 @@ type CalculationResult = {
   - 大量製品（100個以上）の高速処理
 
 ### v5.0
+
 - 複雑形状対応
   - ユーザーが形状を描画
   - 台形、穴あき形状対応
   - ポリゴンベースのアルゴリズム
 
 ### v10（最終形態）
+
 - 完全自動化
   - 形状の複雑度を自動判定
   - 最適アルゴリズムの自動選択
@@ -517,12 +544,14 @@ type CalculationResult = {
 ## 10. 成功基準
 
 ### v1.0 の成功基準
+
 1. **計算精度：** 手作業より歩留まり率が5%以上向上
 2. **時間削減：** 計算時間が10分 → 1分以内に短縮
 3. **使いやすさ：** 説明なしで使える（実家のスタッフが使える）
 4. **安定性：** エラーなく動作（基本的な使用で）
 
 ### v1.0 で避けるべき失敗
+
 - 完璧を求めすぎて動かない
 - 機能を詰め込みすぎて複雑化
 - 実際の業務フローと合わない
@@ -532,17 +561,20 @@ type CalculationResult = {
 ## 11. 開発時の注意点
 
 ### 11.1 MVP 思考を徹底
+
 - v1.0 は「動くこと」が最優先
 - 荒くても実家で使えればOK
 - フィードバック収集が目的
 
 ### 11.2 開発ログを記録
+
 - つまづいた点
 - AI への質問内容
 - 解決方法
-→ これがブログネタになる
+  → これがブログネタになる
 
 ### 11.3 横展開を見据える
+
 - v1.0 は実家専用でOK
 - でも設計は汎用性を考慮
 - 他社展開しやすい構造に
@@ -569,34 +601,41 @@ type CalculationResult = {
 **詳細は [algorithm-details.md](./algorithm-details.md) を参照してください。**
 
 #### 余白とカット幅
+
 - 余白は**上下左右すべての辺**に適用
 - カット幅は**製品と製品の間のみ**に適用（端は余白でカバー）
 
 #### 回転判定のロジック
+
 - **残スペース最大化ヒューリスティック**を採用
 - 回転なし/ありの両方を試して、配置後の最大空きスペースが大きくなる方を選択
 - 局所最適ではなく、次の製品が入りやすい方を優先
 
 #### 元板より大きい製品
+
 - **v1.0では計算から除外**し、警告メッセージを表示
 - 実家では、たまに発生する（分割裁断して複数元板から作成）
 - v3.0以降で「分割裁断機能」として実装予定
 
 #### パターンの表示順序
+
 - **枚数が多い順**に表示（パターンA, B, C...）
 - 実際の作業では、大きいものから切り出すため、よく使うパターンを先に確認したい
 
 #### 製品の色割り当て
+
 - v1.0では**自動割り当てのみ**
 - 同じ製品名の場合、同じ色を使用
 - 手動変更機能はv1.5以降で検討
 
 #### 想定規模
+
 - 製品種類: 約10種類
 - 総個数: 30〜50個
 - 計算頻度: 1日2回程度
 
 #### 印刷物に含める情報
+
 - **ビジュアル図**（最重要）
 - 各元板から各製品が何個切り出せているか
 - 合計で何個切り出せているか
@@ -606,6 +645,7 @@ type CalculationResult = {
 ### 13.2 関連ドキュメント
 
 実装の詳細は以下のドキュメントを参照：
+
 - [アルゴリズム詳細仕様書](./algorithm-details.md) - 今回のQ&Aで明確になった詳細
 - [システムアーキテクチャ設計書](./architecture.md) - システム全体の設計
 - [データフロー設計書](./data-flow.md) - データの流れの詳細
@@ -616,6 +656,7 @@ type CalculationResult = {
 **このドキュメントをClaude Codeに共有して開発開始**
 
 **次のステップ：**
+
 1. Cursorで新規プロジェクト作成
 2. この要件定義書をClaude Codeに共有
 3. 開発方針を相談しながら実装

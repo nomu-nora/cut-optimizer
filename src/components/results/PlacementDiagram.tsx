@@ -7,18 +7,12 @@ export interface PlacementDiagramProps {
   cutConfig: CutConfig
 }
 
-export function PlacementDiagram({
-  pattern,
-  plateConfig,
-  cutConfig,
-}: PlacementDiagramProps) {
+export function PlacementDiagram({ pattern, plateConfig, cutConfig }: PlacementDiagramProps) {
   // Use offcut dimensions if this is an offcut pattern
-  const plateWidth = pattern.isOffcut && pattern.offcutInfo
-    ? pattern.offcutInfo.width
-    : plateConfig.width
-  const plateHeight = pattern.isOffcut && pattern.offcutInfo
-    ? pattern.offcutInfo.height
-    : plateConfig.height
+  const plateWidth =
+    pattern.isOffcut && pattern.offcutInfo ? pattern.offcutInfo.width : plateConfig.width
+  const plateHeight =
+    pattern.isOffcut && pattern.offcutInfo ? pattern.offcutInfo.height : plateConfig.height
 
   // Offcuts have no margin (already cut)
   const margin = pattern.isOffcut ? 0 : cutConfig.margin
@@ -34,7 +28,9 @@ export function PlacementDiagram({
   const effectiveHeight = plateHeight - margin * 2
 
   return (
-    <Card title={`配置図 - パターン ${pattern.patternId}${pattern.isOffcut && pattern.offcutInfo ? ` (${pattern.offcutInfo.name})` : ''}`}>
+    <Card
+      title={`配置図 - パターン ${pattern.patternId}${pattern.isOffcut && pattern.offcutInfo ? ` (${pattern.offcutInfo.name})` : ''}`}
+    >
       <div className="space-y-4">
         {/* Diagram info */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
@@ -43,8 +39,12 @@ export function PlacementDiagram({
             <p className="font-bold text-gray-900">{pattern.patternId}</p>
           </div>
           <div className="bg-gray-50 p-2 rounded">
-            <p className="text-gray-600 text-xs">{pattern.isOffcut ? '端材サイズ' : '元板サイズ'}</p>
-            <p className="font-bold text-gray-900">{plateWidth}×{plateHeight}mm</p>
+            <p className="text-gray-600 text-xs">
+              {pattern.isOffcut ? '端材サイズ' : '元板サイズ'}
+            </p>
+            <p className="font-bold text-gray-900">
+              {plateWidth}×{plateHeight}mm
+            </p>
           </div>
           <div className="bg-gray-50 p-2 rounded">
             <p className="text-gray-600 text-xs">製品数</p>
@@ -128,7 +128,9 @@ export function PlacementDiagram({
                   {/* Dimensions */}
                   <text
                     x={placement.x + displayWidth / 2}
-                    y={placement.y + displayHeight / 2 + Math.min(displayWidth, displayHeight) * 0.12}
+                    y={
+                      placement.y + displayHeight / 2 + Math.min(displayWidth, displayHeight) * 0.12
+                    }
                     textAnchor="middle"
                     dominantBaseline="middle"
                     fill="#ffffff"
@@ -147,25 +149,25 @@ export function PlacementDiagram({
 
             {/* Dimensions labels */}
             <text
-              x={plateConfig.width / 2}
-              y={plateConfig.height - 5}
+              x={plateWidth / 2}
+              y={plateHeight - 5}
               textAnchor="middle"
               fill="#6b7280"
               fontSize={40}
               fontWeight="bold"
             >
-              {plateConfig.width} mm
+              {plateWidth} mm
             </text>
             <text
-              x={plateConfig.width - 5}
-              y={plateConfig.height / 2}
+              x={plateWidth - 5}
+              y={plateHeight / 2}
               textAnchor="middle"
               fill="#6b7280"
               fontSize={40}
               fontWeight="bold"
-              transform={`rotate(-90, ${plateConfig.width - 5}, ${plateConfig.height / 2})`}
+              transform={`rotate(-90, ${plateWidth - 5}, ${plateHeight / 2})`}
             >
-              {plateConfig.height} mm
+              {plateHeight} mm
             </text>
           </svg>
         </div>
@@ -176,11 +178,13 @@ export function PlacementDiagram({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
             <div className="flex items-center">
               <div className="w-4 h-4 border-2 border-gray-400 bg-white mr-2"></div>
-              <span className="text-gray-600">元板 ({plateConfig.width} × {plateConfig.height} mm)</span>
+              <span className="text-gray-600">
+                {pattern.isOffcut ? '端材' : '元板'} ({plateWidth} × {plateHeight} mm)
+              </span>
             </div>
             <div className="flex items-center">
               <div className="w-4 h-4 border border-gray-400 border-dashed bg-white mr-2"></div>
-              <span className="text-gray-600">有効エリア (余白: {cutConfig.margin} mm)</span>
+              <span className="text-gray-600">有効エリア (余白: {margin} mm)</span>
             </div>
           </div>
         </div>

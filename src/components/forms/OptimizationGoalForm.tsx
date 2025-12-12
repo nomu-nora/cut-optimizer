@@ -16,7 +16,7 @@ export function OptimizationGoalForm({
   useGA,
   onUseGAChange,
   useGridGrouping,
-  onUseGridGroupingChange
+  onUseGridGroupingChange,
 }: OptimizationGoalFormProps) {
   return (
     <Card title="最適化目標">
@@ -48,7 +48,9 @@ export function OptimizationGoalForm({
             />
             <div>
               <span className="font-medium">余りスペース優先</span>
-              <p className="text-sm text-gray-600">次回使いやすい形状の余りを確保（左下詰め配置）</p>
+              <p className="text-sm text-gray-600">
+                次回使いやすい形状の余りを確保（左下詰め配置）
+              </p>
             </div>
           </label>
         </div>

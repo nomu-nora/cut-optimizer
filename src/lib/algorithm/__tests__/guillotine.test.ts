@@ -138,9 +138,7 @@ describe('calculate - Guillotine Cut Algorithm', () => {
         expect(placement.y).toBeGreaterThanOrEqual(cutConfig.margin)
 
         // Placement should not exceed effective area
-        expect(placement.x + placement.width).toBeLessThanOrEqual(
-          cutConfig.margin + effectiveWidth
-        )
+        expect(placement.x + placement.width).toBeLessThanOrEqual(cutConfig.margin + effectiveWidth)
         expect(placement.y + placement.height).toBeLessThanOrEqual(
           cutConfig.margin + effectiveHeight
         )

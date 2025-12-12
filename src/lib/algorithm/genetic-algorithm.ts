@@ -52,10 +52,7 @@ interface GAOptions {
  *
  * スコア = -総枚数 * 1000 + 歩留まり + 余りスペース品質 * 10
  */
-function calculateFitness(
-  result: CalculationResult,
-  optimizationGoal: OptimizationGoal
-): number {
+function calculateFitness(result: CalculationResult, optimizationGoal: OptimizationGoal): number {
   // 元板枚数が少ないほど高得点（最優先）
   const plateScore = -result.totalPlates * 1000
 
@@ -134,10 +131,7 @@ function evaluateIndividual(
 /**
  * 初期集団を生成
  */
-function initializePopulation(
-  populationSize: number,
-  itemCount: number
-): Individual[] {
+function initializePopulation(populationSize: number, itemCount: number): Individual[] {
   const population: Individual[] = []
   const sortStrategies: SortStrategy[] = ['area', 'width', 'height', 'long-edge', 'short-edge']
 
@@ -175,9 +169,7 @@ function tournamentSelection(population: Individual[], tournamentSize: number = 
   }
 
   // 適応度が最も高い個体を選択
-  return tournament.reduce((best, current) =>
-    current.fitness > best.fitness ? current : best
-  )
+  return tournament.reduce((best, current) => (current.fitness > best.fitness ? current : best))
 }
 
 /**
@@ -252,12 +244,7 @@ export function optimizeWithGA(
   useGridGrouping: boolean = false,
   options: GAOptions = {}
 ): CalculationResult {
-  const {
-    populationSize = 20,
-    generations = 15,
-    mutationRate = 0.2,
-    eliteCount = 2,
-  } = options
+  const { populationSize = 20, generations = 15, mutationRate = 0.2, eliteCount = 2 } = options
 
   // 初期集団の生成
   let population = initializePopulation(populationSize, items.length)

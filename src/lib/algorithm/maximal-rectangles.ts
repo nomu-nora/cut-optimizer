@@ -531,8 +531,10 @@ function tryCreateDynamicGrid(
         const totalHeight = rows * itemHeight + (rows - 1) * cutWidth
 
         // 空き矩形に収まるかチェック
-        if (totalWidth + cutWidth <= freeRectangle.width &&
-            totalHeight + cutWidth <= freeRectangle.height) {
+        if (
+          totalWidth + cutWidth <= freeRectangle.width &&
+          totalHeight + cutWidth <= freeRectangle.height
+        ) {
           candidates.push({
             id: `dynamic-grid-${rows}x${cols}`,
             items: sameSizeItems.slice(0, gridItemCount),
@@ -586,9 +588,7 @@ function findBestRectangleForGrid(
 ): FreeRectangle | null {
   // グリッドが収まる矩形をフィルタ
   const validRects = freeRectangles.filter((rect) => {
-    return (
-      grid.totalWidth + cutWidth <= rect.width && grid.totalHeight + cutWidth <= rect.height
-    )
+    return grid.totalWidth + cutWidth <= rect.width && grid.totalHeight + cutWidth <= rect.height
   })
 
   if (validRects.length === 0) return null
@@ -647,8 +647,7 @@ function findBestRectangleForGrid(
 
       for (const rect of validRects) {
         const areaFit =
-          rect.width * rect.height -
-          (grid.totalWidth + cutWidth) * (grid.totalHeight + cutWidth)
+          rect.width * rect.height - (grid.totalWidth + cutWidth) * (grid.totalHeight + cutWidth)
 
         if (areaFit < bestAreaFit) {
           bestRect = rect
@@ -678,7 +677,10 @@ function findBestRectangleForGrid(
 /**
  * 新しい元板を作成する
  */
-function createNewPlate(plateConfig: PlateConfig, cutConfig: CutConfig): {
+function createNewPlate(
+  plateConfig: PlateConfig,
+  cutConfig: CutConfig
+): {
   id: string
   placements: PlacedItem[]
   freeRectangles: FreeRectangle[]
@@ -744,8 +746,8 @@ function calculateRemainingSpaceQuality(freeRectangles: FreeRectangle[]): number
   const concentrationScore = 1 / (1 + freeRectangles.length * 0.2)
 
   // 2. 形状スコア：正方形に近いほど良い
-  const aspectRatio = Math.max(maxRect.width, maxRect.height) /
-                      Math.min(maxRect.width, maxRect.height)
+  const aspectRatio =
+    Math.max(maxRect.width, maxRect.height) / Math.min(maxRect.width, maxRect.height)
   const shapeScore = 1 / aspectRatio // 1に近いほど正方形
 
   // 3. サイズスコア：最大矩形が総面積に占める割合
@@ -866,7 +868,7 @@ function calculateMaximalRectanglesWithHeuristic(
           return a.x - b.x // 左側を優先
         } else {
           // 歩留まり優先: 面積が大きい順
-          return (b.width * b.height) - (a.width * a.height)
+          return b.width * b.height - a.width * a.height
         }
       })
 
@@ -892,8 +894,8 @@ function calculateMaximalRectanglesWithHeuristic(
           )
 
           // 配置したアイテムを残りリストから削除
-          const placedIds = new Set(grid.items.map(item => item.id))
-          remainingItems = remainingItems.filter(item => !placedIds.has(item.id))
+          const placedIds = new Set(grid.items.map((item) => item.id))
+          remainingItems = remainingItems.filter((item) => !placedIds.has(item.id))
 
           placed = true
           break
@@ -922,7 +924,7 @@ function calculateMaximalRectanglesWithHeuristic(
         )
 
         // 配置したアイテムを削除
-        remainingItems = remainingItems.filter(item => item.id !== currentItem.id)
+        remainingItems = remainingItems.filter((item) => item.id !== currentItem.id)
         placed = true
       } else {
         // 配置できない場合、既存の全元板に配置を試みる
@@ -947,7 +949,7 @@ function calculateMaximalRectanglesWithHeuristic(
               cutConfig.cutWidth
             )
 
-            remainingItems = remainingItems.filter(item => item.id !== currentItem.id)
+            remainingItems = remainingItems.filter((item) => item.id !== currentItem.id)
             placedInExistingPlate = true
             break
           }
@@ -969,7 +971,7 @@ function calculateMaximalRectanglesWithHeuristic(
                 return a.x - b.x
               } else {
                 // 歩留まり優先: 面積が大きい順
-                return (b.width * b.height) - (a.width * a.height)
+                return b.width * b.height - a.width * a.height
               }
             })
 
@@ -992,8 +994,8 @@ function calculateMaximalRectanglesWithHeuristic(
                   cutConfig.cutWidth
                 )
 
-                const placedIds = new Set(grid.items.map(item => item.id))
-                remainingItems = remainingItems.filter(item => !placedIds.has(item.id))
+                const placedIds = new Set(grid.items.map((item) => item.id))
+                remainingItems = remainingItems.filter((item) => !placedIds.has(item.id))
 
                 placedInNewPlate = true
                 break
@@ -1026,7 +1028,7 @@ function calculateMaximalRectanglesWithHeuristic(
               cutConfig.cutWidth
             )
 
-            remainingItems = remainingItems.filter(item => item.id !== currentItem.id)
+            remainingItems = remainingItems.filter((item) => item.id !== currentItem.id)
           }
         }
       }
@@ -1104,21 +1106,22 @@ export function calculateMaximalRectangles(
   }
 
   // 最適化目標に応じてヒューリスティックの順序を変更
-  const heuristics: Heuristic[] = optimizationGoal === 'remaining-space'
-    ? [
-        // 余りスペース優先: Bottom-Leftを最優先（左下詰めで余白を右上にまとめる）
-        'bottom-left',
-        'best-area-fit',
-        'best-long-side-fit',
-        'best-short-side-fit',
-      ]
-    : [
-        // 歩留まり優先: 従来通り
-        'best-short-side-fit',
-        'best-long-side-fit',
-        'best-area-fit',
-        'bottom-left',
-      ]
+  const heuristics: Heuristic[] =
+    optimizationGoal === 'remaining-space'
+      ? [
+          // 余りスペース優先: Bottom-Leftを最優先（左下詰めで余白を右上にまとめる）
+          'bottom-left',
+          'best-area-fit',
+          'best-long-side-fit',
+          'best-short-side-fit',
+        ]
+      : [
+          // 歩留まり優先: 従来通り
+          'best-short-side-fit',
+          'best-long-side-fit',
+          'best-area-fit',
+          'bottom-left',
+        ]
 
   let bestResult: CalculationResultWithQuality | null = null
 

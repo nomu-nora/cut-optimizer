@@ -21,6 +21,11 @@ export interface CutConfig {
 }
 
 /**
+ * 端材処理モード
+ */
+export type OffcutMode = 'consumption' | 'optimization'
+
+/**
  * デフォルト設定値
  */
 export const DEFAULT_PLATE_CONFIG: PlateConfig = {

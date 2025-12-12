@@ -4,7 +4,7 @@
  */
 
 // 設定関連の型
-export type { PlateConfig, CutConfig } from './config'
+export type { PlateConfig, CutConfig, OffcutMode } from './config'
 export { DEFAULT_PLATE_CONFIG, DEFAULT_CUT_CONFIG } from './config'
 
 // 製品関連の型
@@ -15,12 +15,7 @@ export { COLOR_PALETTE } from './item'
 export type { Placement, FreeSpace, Plate, CanPlaceResult } from './algorithm'
 
 // 結果表示関連の型
-export type {
-  PatternGroup,
-  CalculationResult,
-  SkippedItem,
-  CalculationStats,
-} from './result'
+export type { PatternGroup, CalculationResult, SkippedItem, CalculationStats } from './result'
 
 // 端材関連の型
 export type { OffcutPlate, OffcutUsageInfo, OffcutUsage } from './offcut'

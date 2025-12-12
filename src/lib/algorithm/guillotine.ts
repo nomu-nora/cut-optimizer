@@ -9,22 +9,16 @@ import type {
   CalculationResult,
   SkippedItem,
   OffcutPlate,
+  OffcutMode,
 } from '@/types'
 import { expandItems, sortByStrategy, type SortStrategy } from './sort'
 import { decideRotation, type RotationStrategy } from './placement'
 import { splitSpace } from './space'
 import { calculateYield, calculateAverageYield } from './yield'
 import { groupPatterns, getTotalPlatesFromPatterns } from './pattern'
-import {
-  calculateMaximalRectangles,
-  type OptimizationGoal,
-} from './maximal-rectangles'
+import { calculateMaximalRectangles, type OptimizationGoal } from './maximal-rectangles'
 import { optimizeWithGA } from './genetic-algorithm'
-import {
-  placeOnOffcuts,
-  getRemainingItems,
-  mergeResults,
-} from './offcut-placement'
+import { placeOnOffcuts, getRemainingItems, mergeResults } from './offcut-placement'
 
 /**
  * 配置戦略の組み合わせ
@@ -373,7 +367,13 @@ export function calculate(
   }
 
   // 通常のMaximal Rectangles
-  return calculateMaximalRectangles(plateConfig, cutConfig, items, optimizationGoal, useGridGrouping)
+  return calculateMaximalRectangles(
+    plateConfig,
+    cutConfig,
+    items,
+    optimizationGoal,
+    useGridGrouping
+  )
 }
 
 /**
@@ -391,7 +391,8 @@ export function calculateWithOffcuts(
   cutConfig: CutConfig,
   items: Item[],
   offcuts: OffcutPlate[],
-  optimizationGoal: OptimizationGoal = 'yield'
+  optimizationGoal: OptimizationGoal = 'yield',
+  offcutMode: OffcutMode = 'consumption'
 ): CalculationResult {
   // 端材がない場合は通常の計算
   if (offcuts.length === 0) {
@@ -399,21 +400,22 @@ export function calculateWithOffcuts(
   }
 
   // 1. 端材に製品を配置
-  const offcutResults = placeOnOffcuts(offcuts, items, cutConfig, optimizationGoal)
+  const offcutResults = placeOnOffcuts(offcuts, items, cutConfig, optimizationGoal, offcutMode)
 
   // 2. 残った製品を取得
   const remainingItems = getRemainingItems(items, offcutResults)
 
   // 3. 残った製品で新規元板を計算
-  const newPlateResults = remainingItems.length > 0
-    ? calculate(plateConfig, cutConfig, remainingItems, optimizationGoal, false, false)
-    : {
-        patterns: [],
-        totalPlates: 0,
-        averageYield: 0,
-        totalCost: 0,
-        skippedItems: [],
-      }
+  const newPlateResults =
+    remainingItems.length > 0
+      ? calculate(plateConfig, cutConfig, remainingItems, optimizationGoal, false, false)
+      : {
+          patterns: [],
+          totalPlates: 0,
+          averageYield: 0,
+          totalCost: 0,
+          skippedItems: [],
+        }
 
   // 4. 結果を統合
   return mergeResults(offcutResults, newPlateResults, offcuts, plateConfig)

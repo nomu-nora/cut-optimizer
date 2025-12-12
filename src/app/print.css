@@ -78,7 +78,9 @@
     font-size: 14pt;
   }
 
-  p, td, th {
+  p,
+  td,
+  th {
     font-size: 10pt;
   }
 

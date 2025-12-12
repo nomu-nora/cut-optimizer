@@ -24,3 +24,6 @@ export type { OffcutListProps } from './OffcutList'
 
 export { OffcutPresetManager } from './OffcutPresetManager'
 export type { OffcutPresetManagerProps } from './OffcutPresetManager'
+
+export { OffcutModeSelector } from './OffcutModeSelector'
+export type { OffcutModeSelectorProps } from './OffcutModeSelector'

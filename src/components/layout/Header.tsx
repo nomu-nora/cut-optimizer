@@ -4,9 +4,7 @@ export function Header() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              取り数最適化システム
-            </h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">取り数最適化システム</h1>
             <p className="text-sm sm:text-base text-gray-600 mt-1">
               元板から製品を効率的に切り出す配置計算アプリ
             </p>

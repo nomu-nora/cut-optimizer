@@ -18,9 +18,7 @@ export function PresetManager({ onLoadPreset }: PresetManagerProps) {
   return (
     <Card title="プリセット">
       <div className="space-y-3">
-        <p className="text-sm text-gray-600 mb-3">
-          テスト用のプリセットデータを読み込めます
-        </p>
+        <p className="text-sm text-gray-600 mb-3">テスト用のプリセットデータを読み込めます</p>
         <div className="grid grid-cols-1 gap-2">
           {DEFAULT_PRESETS.map((preset) => (
             <div
@@ -29,23 +27,15 @@ export function PresetManager({ onLoadPreset }: PresetManagerProps) {
             >
               <div>
                 <p className="font-medium text-sm text-gray-900">{preset.name}</p>
-                <p className="text-xs text-gray-500">
-                  製品数: {preset.items.length}
-                </p>
+                <p className="text-xs text-gray-500">製品数: {preset.items.length}</p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleLoadPreset(preset)}
-              >
+              <Button variant="outline" size="sm" onClick={() => handleLoadPreset(preset)}>
                 読み込み
               </Button>
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-500 mt-3">
-          ※ v1.0では既存の製品リストを上書きします
-        </p>
+        <p className="text-xs text-gray-500 mt-3">※ v1.0では既存の製品リストを上書きします</p>
       </div>
     </Card>
   )

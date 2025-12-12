@@ -21,12 +21,12 @@ export function ResultSummary({
   }
 
   // 元板のみの枚数を計算
-  const newPlateCount = result.patterns
+  const newPlateCount = (result.patterns || [])
     .filter(p => !p.isOffcut)
     .reduce((sum, p) => sum + p.count, 0)
 
   // 元板から切り出す製品数を計算
-  const itemsFromNewPlates = result.patterns
+  const itemsFromNewPlates = (result.patterns || [])
     .filter(p => !p.isOffcut)
     .reduce((sum, p) => sum + p.placements.length * p.count, 0)
 
@@ -58,7 +58,7 @@ export function ResultSummary({
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <p className="text-sm text-green-600 font-medium mb-1">切り出す製品</p>
               <p className="text-3xl font-bold text-green-900">{itemsFromNewPlates}</p>
-              <p className="text-xs text-green-600 mt-1">個</p>
+              <p className="text-xs text-green-600 mt-1">{totalItemQuantity}個分の{itemsFromNewPlates}個</p>
             </div>
           </div>
         </div>

@@ -1,6 +1,43 @@
 /**
  * 端材（余り材）配置アルゴリズム
  * v1.3で追加
+ *
+ * ## アルゴリズムの概要
+ *
+ * 1. **端材の展開と準備**
+ *    - 端材を1枚ずつに展開（quantity=3なら3枚に分割）
+ *    - 面積順にソート（小さい順）
+ *
+ * 2. **部分最適化による配置**
+ *    各端材について：
+ *    a) その端材に入る可能性のある製品をフィルタリング
+ *       - 回転あり/なし両方で寸法チェック
+ *       - カット幅は考慮しない（端材は既にカット済み）
+ *
+ *    b) 各製品種類を**単独**で試行
+ *       - quantity=100に設定して最大限詰め込む
+ *       - Maximal Rectanglesで配置計算
+ *
+ *    c) 最も歩留まりが高い製品を選択
+ *       - 優先順位: 歩留まり > 配置個数
+ *       - 部分最適（その端材に最適な製品）を優先
+ *
+ *    d) 配置した製品をマーク（他の端材では使用不可）
+ *
+ * 3. **残製品の計算**
+ *    - 端材で配置できなかった数量を計算
+ *    - 残りは新規元板で配置
+ *
+ * 4. **結果の統合**
+ *    - 端材パターン（O-1, O-2...）
+ *    - 新規元板パターン（A, B, C...）
+ *    - 削減コスト = 使用端材枚数 × 元板単価
+ *
+ * ## 設計思想
+ *
+ * - **部分最適**: 各端材に対して最適な製品を選ぶ
+ * - **小さい端材優先**: 小さい端材から処理することで、効率的な使用を促進
+ * - **単純性**: 複雑な組み合わせ最適化ではなく、貪欲法による高速処理
  */
 
 import type { OffcutPlate, OffcutUsageInfo, Item, PlateConfig, CutConfig, CalculationResult, PatternGroup } from '@/types'
@@ -97,34 +134,28 @@ export function placeOnOffcuts(
       new Map(validItems.map((item) => [item.id.split('-')[0], item])).values()
     )
 
-    // 試す製品の組み合わせを準備
-    const itemSetsToTry: Item[][] = [
-      // 1. 各製品種類単独
-      ...uniqueItems.map((item) => [item]),
-      // 2. 全製品一緒
-      validItems,
-    ]
-
-    // この端材での最良パターンを探す
+    // この端材での最良パターンを探す（部分最適）
+    // 各製品種類を単独で試し、最も歩留まりが高いものを選ぶ
     let bestPattern: {
       result: CalculationResult
       placedIds: string[]
       yield: number
+      itemCount: number
     } | null = null
 
-    for (const itemSet of itemSetsToTry) {
+    for (const singleItem of uniqueItems) {
       try {
         // 製品の数量を大量に設定（1枚に最大限詰め込むため）
-        const itemSetWithHighQuantity = itemSet.map((item) => ({
-          ...item,
+        const itemWithHighQuantity = {
+          ...singleItem,
           quantity: 100, // 大量に設定
-        }))
+        }
 
-        // この製品セットで配置を試行
+        // この製品単独で配置を試行
         const result = calculate(
           offcutPlateConfig,
           offcutCutConfig,
-          itemSetWithHighQuantity,
+          [itemWithHighQuantity],
           optimizationGoal,
           false, // GAは使用しない（高速化）
           false  // グリッドグルーピングも使用しない
@@ -134,6 +165,7 @@ export function placeOnOffcuts(
         if (result.patterns.length > 0 && result.patterns[0].placements.length > 0) {
           const pattern = result.patterns[0]
           const yieldValue = pattern.yield
+          const itemCount = pattern.placements.length
 
           // 配置できた製品のIDを収集
           const placedIds: string[] = []
@@ -144,16 +176,22 @@ export function placeOnOffcuts(
           }
 
           // この端材での最良パターンを記録
-          if (placedIds.length > 0 && (!bestPattern || yieldValue > bestPattern.yield)) {
-            bestPattern = {
-              result,
-              placedIds,
-              yield: yieldValue,
+          // 優先順位: 1) 歩留まりが高い 2) 配置できる個数が多い
+          if (placedIds.length > 0) {
+            if (!bestPattern ||
+                yieldValue > bestPattern.yield ||
+                (yieldValue === bestPattern.yield && itemCount > bestPattern.itemCount)) {
+              bestPattern = {
+                result,
+                placedIds,
+                yield: yieldValue,
+                itemCount,
+              }
             }
           }
         }
       } catch (error) {
-        // この製品セットでは配置できなかった
+        // この製品では配置できなかった
         continue
       }
     }

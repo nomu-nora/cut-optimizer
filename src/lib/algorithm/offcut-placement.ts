@@ -309,7 +309,7 @@ function placeOnOffcutsConsumptionMode(
             itemCount,
           }
         }
-      } catch (error) {
+      } catch {
         continue
       }
     }
@@ -491,7 +491,7 @@ function placeOnOffcutsOptimizationMode(
             itemCount,
           }
         }
-      } catch (error) {
+      } catch {
         continue
       }
     }

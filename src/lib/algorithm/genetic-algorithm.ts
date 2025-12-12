@@ -16,8 +16,9 @@ type SortStrategy = 'area' | 'width' | 'height' | 'long-edge' | 'short-edge'
 
 /**
  * ヒューリスティックの種類
+ * 注: 現在未使用だが、将来の拡張用に定義を残す
  */
-type Heuristic = 'best-short-side-fit' | 'best-long-side-fit' | 'best-area-fit' | 'bottom-left'
+// type Heuristic = 'best-short-side-fit' | 'best-long-side-fit' | 'best-area-fit' | 'bottom-left'
 
 /**
  * 個体（Individual）: 配置戦略の遺伝子
@@ -121,7 +122,7 @@ function evaluateIndividual(
 
     individual.result = result
     individual.fitness = calculateFitness(result, optimizationGoal)
-  } catch (error) {
+  } catch {
     // エラーが発生した場合、適応度を最低にする
     individual.fitness = -Infinity
     individual.result = null

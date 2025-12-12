@@ -264,12 +264,14 @@ export type Algorithm = 'guillotine' | 'maximal-rectangles'
 
 /**
  * 複数の戦略を試して最良のパターンを選択（ギロチンカット）
+ * 注: 現在未使用（calculateMaximalRectanglesを使用）だが、将来の拡張用に残す
  *
  * @param plateConfig 元板設定
  * @param cutConfig 切断設定
  * @param items 製品リスト
  * @returns 計算結果
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function calculateGuillotine(
   plateConfig: PlateConfig,
   cutConfig: CutConfig,
@@ -325,7 +327,7 @@ function calculateGuillotine(
       ) {
         bestResult = result
       }
-    } catch (error) {
+    } catch {
       // この戦略では配置できなかった場合はスキップ
       continue
     }

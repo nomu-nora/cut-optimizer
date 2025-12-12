@@ -50,15 +50,9 @@ function generateGridCandidates(count: number): Array<[number, number]> {
  * @param gridWidth グリッドの幅
  * @param gridHeight グリッドの高さ
  * @param space 空きスペース
- * @param cutWidth 切断幅
  * @returns 収まるかどうか
  */
-function fitsInSpace(
-  gridWidth: number,
-  gridHeight: number,
-  space: FreeSpace,
-  cutWidth: number
-): boolean {
+function fitsInSpace(gridWidth: number, gridHeight: number, space: FreeSpace): boolean {
   return gridWidth <= space.width && gridHeight <= space.height
 }
 
@@ -126,7 +120,7 @@ export function calculateOptimalGrid(
       const totalHeight = rows * itemHeight + (rows - 1) * cutWidth
 
       // 空きスペースに収まるかチェック
-      if (!fitsInSpace(totalWidth, totalHeight, space, cutWidth)) {
+      if (!fitsInSpace(totalWidth, totalHeight, space)) {
         continue
       }
 

@@ -17,12 +17,7 @@ import type {
 import { expandItems, sortByArea } from './sort'
 import { calculateYield, calculateAverageYield } from './yield'
 import { groupPatterns, getTotalPlatesFromPatterns } from './pattern'
-import {
-  groupItemsBySize,
-  calculateOptimalGrid,
-  extractUngroupedItems,
-  type GridGroup,
-} from './grid-grouping'
+import { type GridGroup } from './grid-grouping'
 
 /**
  * 空き矩形（Free Rectangle）
@@ -44,15 +39,6 @@ interface PlacedItem {
   width: number // 配置時の幅（回転考慮済み）
   height: number // 配置時の高さ（回転考慮済み）
   rotated: boolean
-}
-
-/**
- * 配置済みグリッド
- */
-interface PlacedGrid {
-  grid: GridGroup
-  x: number
-  y: number
 }
 
 /**
@@ -579,7 +565,9 @@ function tryCreateDynamicGrid(
 
 /**
  * グリッドを配置できる最適な矩形を見つける
+ * 注: 現在未使用だが、将来の拡張用に残す
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function findBestRectangleForGrid(
   grid: GridGroup,
   freeRectangles: FreeRectangle[],
@@ -1160,7 +1148,7 @@ export function calculateMaximalRectangles(
       if (isBetter) {
         bestResult = result
       }
-    } catch (error) {
+    } catch {
       // このヒューリスティックでは配置できなかった場合はスキップ
       continue
     }
@@ -1171,7 +1159,8 @@ export function calculateMaximalRectangles(
   }
 
   // remainingSpaceQualityを除外してCalculationResult型として返す
-  const { remainingSpaceQuality, ...finalResult } = bestResult
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { remainingSpaceQuality: _remainingSpaceQuality, ...finalResult } = bestResult
 
   // スキップされたアイテムを追加
   return {

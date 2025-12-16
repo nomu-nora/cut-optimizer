@@ -19,3 +19,6 @@ export type { PatternGroup, CalculationResult, SkippedItem, CalculationStats } f
 
 // 端材関連の型
 export type { OffcutPlate, OffcutUsageInfo, OffcutUsage } from './offcut'
+
+// 編集機能関連の型
+export type { EditableResult, StagingArea, SnapPoint, Modification } from './editing'

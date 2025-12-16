@@ -30,6 +30,9 @@ import type {
   CalculationResult,
   PatternGroup,
   OffcutMode,
+  EditableResult,
+  StagingArea,
+  Placement,
 } from '@/types'
 import { DEFAULT_PLATE_CONFIG } from '@/types'
 
@@ -63,6 +66,16 @@ export default function Home() {
 
   // Print state
   const [showPrintPreview, setShowPrintPreview] = useState(false)
+
+  // Edit mode state
+  const [editMode, setEditMode] = useState(false)
+  const [editableResult, setEditableResult] = useState<EditableResult | null>(null)
+  const [stagingArea, setStagingArea] = useState<StagingArea>({
+    products: [],
+    sourcePatternIds: new Map(),
+  })
+  const [selectedPlacement, setSelectedPlacement] = useState<Placement | null>(null)
+  const [snapEnabled, setSnapEnabled] = useState(true)
 
   // Handlers
   const handleAddItem = (item: Item) => {
@@ -177,6 +190,56 @@ export default function Home() {
       setEditingOffcut(undefined)
       setError(null)
     }
+  }
+
+  // Edit mode handlers
+  const handleEnterEditMode = () => {
+    if (!result) return
+
+    // Deep copy the result for editing (Copy-on-Write pattern)
+    const editableCopy: EditableResult = {
+      ...result,
+      patterns: result.patterns.map((pattern) => ({
+        ...pattern,
+        placements: pattern.placements.map((placement) => ({
+          ...placement,
+          item: { ...placement.item },
+        })),
+      })),
+      isEdited: false,
+      originalResult: result,
+      modifications: [],
+    }
+
+    setEditableResult(editableCopy)
+    setEditMode(true)
+    setStagingArea({ products: [], sourcePatternIds: new Map() })
+    setSelectedPlacement(null)
+  }
+
+  const handleApplyEdit = () => {
+    if (!editableResult) return
+
+    // Apply the edited result as the new result
+    setResult(editableResult)
+    setEditMode(false)
+    setEditableResult(null)
+    setStagingArea({ products: [], sourcePatternIds: new Map() })
+    setSelectedPlacement(null)
+  }
+
+  const handleDiscardEdit = () => {
+    if (!confirm('編集内容をすべて破棄しますか？')) return
+
+    // Discard edits and return to view mode
+    setEditMode(false)
+    setEditableResult(null)
+    setStagingArea({ products: [], sourcePatternIds: new Map() })
+    setSelectedPlacement(null)
+  }
+
+  const handleToggleSnap = () => {
+    setSnapEnabled(!snapEnabled)
   }
 
   return (

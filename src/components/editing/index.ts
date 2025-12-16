@@ -4,3 +4,4 @@
 
 export { EditModeToolbar } from './EditModeToolbar'
 export { StagingAreaComponent } from './StagingArea'
+export { DraggableProduct } from './DraggableProduct'

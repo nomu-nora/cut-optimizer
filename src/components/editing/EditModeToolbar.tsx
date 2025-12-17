@@ -7,6 +7,8 @@ interface EditModeToolbarProps {
   snapEnabled: boolean
   /** 計算結果が存在するかどうか */
   hasResult: boolean
+  /** 選択中のパターン */
+  selectedPattern: { patternId: string; count: number } | null
   /** 編集モードに入る */
   onEnterEditMode: () => void
   /** 編集内容を適用 */
@@ -15,6 +17,8 @@ interface EditModeToolbarProps {
   onDiscard: () => void
   /** スナップON/OFF切り替え */
   onToggleSnap: () => void
+  /** パターン分割ボタンクリック */
+  onSplitPattern: () => void
 }
 
 /**
@@ -25,10 +29,12 @@ export function EditModeToolbar({
   editMode,
   snapEnabled,
   hasResult,
+  selectedPattern,
   onEnterEditMode,
   onApply,
   onDiscard,
   onToggleSnap,
+  onSplitPattern,
 }: EditModeToolbarProps) {
   if (!editMode && !hasResult) {
     return null
@@ -72,6 +78,31 @@ export function EditModeToolbar({
             >
               <span className="text-base">{snapEnabled ? '🧲' : '📍'}</span>
               <span>スナップ: {snapEnabled ? 'ON' : 'OFF'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onSplitPattern}
+              disabled={!selectedPattern || selectedPattern.count <= 1}
+              className={`
+                flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+                transition-colors
+                ${
+                  selectedPattern && selectedPattern.count > 1
+                    ? 'bg-purple-100 text-purple-700 hover:bg-purple-200'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }
+              `}
+              title={
+                !selectedPattern
+                  ? 'パターンを選択してください'
+                  : selectedPattern.count <= 1
+                    ? 'このパターンは分割できません（1枚のみ）'
+                    : 'パターンを分割'
+              }
+            >
+              <span className="text-base">✂️</span>
+              <span>分割</span>
             </button>
 
             <div className="flex-1" />

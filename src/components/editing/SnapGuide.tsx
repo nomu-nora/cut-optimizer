@@ -27,45 +27,66 @@ export function SnapGuide({
 
   return (
     <g className="snap-guide" pointerEvents="none">
-      {/* 垂直ガイドライン */}
+      {/* 垂直ガイドライン（影付き） */}
       <line
         x1={snapPoint.x}
         y1={0}
         x2={snapPoint.x}
         y2={plateHeight}
-        stroke="#3B82F6"
-        strokeWidth={1}
-        strokeDasharray="4 4"
-        opacity={0.6}
+        stroke="#000000"
+        strokeWidth={3}
+        strokeDasharray="8 6"
+        opacity={0.15}
+      />
+      <line
+        x1={snapPoint.x}
+        y1={0}
+        x2={snapPoint.x}
+        y2={plateHeight}
+        stroke="#F59E0B"
+        strokeWidth={2.5}
+        strokeDasharray="8 6"
+        opacity={0.9}
       />
 
-      {/* 水平ガイドライン */}
+      {/* 水平ガイドライン（影付き） */}
       <line
         x1={0}
         y1={snapPoint.y}
         x2={plateWidth}
         y2={snapPoint.y}
-        stroke="#3B82F6"
-        strokeWidth={1}
-        strokeDasharray="4 4"
-        opacity={0.6}
+        stroke="#000000"
+        strokeWidth={3}
+        strokeDasharray="8 6"
+        opacity={0.15}
+      />
+      <line
+        x1={0}
+        y1={snapPoint.y}
+        x2={plateWidth}
+        y2={snapPoint.y}
+        stroke="#F59E0B"
+        strokeWidth={2.5}
+        strokeDasharray="8 6"
+        opacity={0.9}
       />
 
-      {/* スナップポイントのマーカー */}
-      <circle cx={snapPoint.x} cy={snapPoint.y} r={4} fill="#3B82F6" opacity={0.8} />
+      {/* スナップポイントのマーカー（白い縁取り） */}
+      <circle cx={snapPoint.x} cy={snapPoint.y} r={7} fill="#FFFFFF" opacity={0.9} />
+      <circle cx={snapPoint.x} cy={snapPoint.y} r={5} fill="#F59E0B" opacity={1} />
 
-      {/* スナップポイントの外側の円（アニメーション用） */}
+      {/* スナップポイントの外側の円（パルスアニメーション） */}
       <circle
         cx={snapPoint.x}
         cy={snapPoint.y}
-        r={8}
+        r={10}
         fill="none"
-        stroke="#3B82F6"
-        strokeWidth={2}
-        opacity={0.6}
+        stroke="#F59E0B"
+        strokeWidth={3}
+        opacity={0.7}
       >
-        <animate attributeName="r" from="8" to="12" dur="0.6s" repeatCount="indefinite" />
-        <animate attributeName="opacity" from="0.6" to="0" dur="0.6s" repeatCount="indefinite" />
+        <animate attributeName="r" from="10" to="16" dur="1s" repeatCount="indefinite" />
+        <animate attributeName="opacity" from="0.7" to="0" dur="1s" repeatCount="indefinite" />
       </circle>
     </g>
   )

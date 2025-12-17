@@ -9,6 +9,19 @@ interface StagingAreaProps {
   onSelectPlacement: (placement: Placement) => void
 }
 
+// Helper function to extract base item ID (UUID portion)
+const getBaseItemId = (itemId: string): string => {
+  const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
+  const match = itemId.match(uuidPattern)
+  return match ? match[0] : itemId
+}
+
+interface GroupedProduct {
+  baseId: string
+  product: Placement // 代表となる製品
+  count: number // 同じ製品の数量
+}
+
 /**
  * 仮置き場コンポーネント
  * パターン間移動のために一時的に製品を保持する場所
@@ -19,6 +32,27 @@ export function StagingAreaComponent({
   onSelectPlacement,
 }: StagingAreaProps) {
   const { products } = stagingArea
+
+  // 製品をベースIDでグループ化
+  const groupedProducts: GroupedProduct[] = []
+  const groupMap = new Map<string, GroupedProduct>()
+
+  for (const product of products) {
+    const baseId = getBaseItemId(product.item.id)
+    const existing = groupMap.get(baseId)
+
+    if (existing) {
+      existing.count++
+    } else {
+      const group: GroupedProduct = {
+        baseId,
+        product,
+        count: 1,
+      }
+      groupMap.set(baseId, group)
+      groupedProducts.push(group)
+    }
+  }
 
   if (products.length === 0) {
     return (
@@ -46,11 +80,13 @@ export function StagingAreaComponent({
       </div>
 
       <div className="space-y-2 max-h-96 overflow-y-auto">
-        {products.map((product, index) => {
-          const isSelected = selectedPlacement?.item.id === product.item.id
+        {groupedProducts.map((group, index) => {
+          const product = group.product
+          const isSelected =
+            selectedPlacement && getBaseItemId(selectedPlacement.item.id) === group.baseId
           return (
             <button
-              key={`${product.item.id}-${index}`}
+              key={`${group.baseId}-${index}`}
               type="button"
               onClick={() => onSelectPlacement(product)}
               className={`
@@ -76,6 +112,11 @@ export function StagingAreaComponent({
                     {product.rotated && <span className="ml-1">(回転)</span>}
                   </div>
                 </div>
+                {group.count > 1 && (
+                  <div className="flex-shrink-0 bg-blue-100 text-blue-700 px-2 py-1 rounded-md text-sm font-semibold">
+                    ×{group.count}
+                  </div>
+                )}
                 {isSelected && <span className="text-blue-500 text-lg flex-shrink-0">✓</span>}
               </div>
             </button>

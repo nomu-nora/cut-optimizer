@@ -229,6 +229,12 @@ export default function Home() {
       ...result,
       patterns: result.patterns.map((pattern) => ({
         ...pattern,
+        // Deep copy offcutInfo to avoid shared references
+        offcutInfo: pattern.offcutInfo
+          ? {
+              ...pattern.offcutInfo,
+            }
+          : undefined,
         placements: pattern.placements.map((placement) => ({
           ...placement,
           item: { ...placement.item },
@@ -357,11 +363,19 @@ export default function Home() {
     // Apply edits
     setResult(editableResult)
 
-    // Reset edit mode
+    // Reset edit mode and pattern selection
     setEditMode(false)
     setEditableResult(null)
     setStagingArea({ products: [], sourcePatternIds: new Map() })
     setSelectedPlacement(null)
+
+    // Reset selectedPattern to avoid pointing to deleted patterns
+    // Select the first pattern from the updated result if available
+    if (editableResult.patterns && editableResult.patterns.length > 0) {
+      setSelectedPattern(editableResult.patterns[0])
+    } else {
+      setSelectedPattern(undefined)
+    }
   }
 
   const handleDiscardEdit = () => {
@@ -372,6 +386,13 @@ export default function Home() {
     setEditableResult(null)
     setStagingArea({ products: [], sourcePatternIds: new Map() })
     setSelectedPlacement(null)
+
+    // Reset selectedPattern to the original result's first pattern
+    if (result && result.patterns && result.patterns.length > 0) {
+      setSelectedPattern(result.patterns[0])
+    } else {
+      setSelectedPattern(undefined)
+    }
   }
 
   const handleToggleSnap = () => {
@@ -649,7 +670,7 @@ export default function Home() {
 
                 {/* Result Summary */}
                 <ResultSummary
-                  result={result}
+                  result={editMode && editableResult ? editableResult : result}
                   registeredOffcutCount={offcuts.reduce((sum, o) => sum + o.quantity, 0)}
                   totalItemQuantity={items.reduce((sum, i) => sum + i.quantity, 0)}
                 />

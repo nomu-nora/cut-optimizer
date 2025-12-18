@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Header, MainLayout } from '@/components/layout'
 import {
   PlateConfigForm,
@@ -27,6 +27,17 @@ import { calculate, calculateWithOffcuts, type OptimizationGoal } from '@/lib/al
 import { calculateYield } from '@/lib/utils/yield-calculator'
 import { validateQuantities } from '@/lib/validation/quantity-validation'
 import { isValidPlacement } from '@/lib/validation/placement-validation'
+import {
+  initializeHistory,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
+  getCurrentSnapshot,
+  clearHistory,
+  createSnapshot,
+  pushHistory,
+} from '@/lib/editing/history'
 import type {
   PlateConfig,
   CutConfig,
@@ -38,6 +49,7 @@ import type {
   EditableResult,
   StagingArea,
   Placement,
+  HistoryState,
 } from '@/types'
 import { DEFAULT_PLATE_CONFIG } from '@/types'
 
@@ -82,6 +94,11 @@ export default function Home() {
   const [selectedPlacement, setSelectedPlacement] = useState<Placement | null>(null)
   const [snapEnabled, setSnapEnabled] = useState(true)
   const [showSplitDialog, setShowSplitDialog] = useState(false)
+  const [historyState, setHistoryState] = useState<HistoryState>({
+    stack: [],
+    currentIndex: -1,
+    maxSize: 20,
+  })
 
   // Handlers
   const handleAddItem = (item: Item) => {
@@ -257,6 +274,14 @@ export default function Home() {
     setEditMode(true)
     setStagingArea({ products: [], sourcePatternIds: new Map() })
     setSelectedPlacement(null)
+
+    // Initialize history with initial snapshot
+    const initialHistory = initializeHistory(
+      editableCopy,
+      { products: [], sourcePatternIds: new Map() },
+      selectedPattern?.patternId
+    )
+    setHistoryState(initialHistory)
   }
 
   const handleSplitPatternClick = () => {
@@ -339,6 +364,15 @@ export default function Home() {
     setSelectedPattern(childPattern) // Select the newly created child pattern
     setShowSplitDialog(false)
 
+    // Save history after pattern split
+    const snapshot = createSnapshot(
+      updatedEditableResult,
+      stagingArea,
+      childPattern.patternId,
+      'pattern-split'
+    )
+    setHistoryState(pushHistory(historyState, snapshot))
+
     console.log('Pattern split completed')
   }
 
@@ -368,6 +402,7 @@ export default function Home() {
     setEditableResult(null)
     setStagingArea({ products: [], sourcePatternIds: new Map() })
     setSelectedPlacement(null)
+    setHistoryState(clearHistory())
 
     // Reset selectedPattern to avoid pointing to deleted patterns
     // Select the first pattern from the updated result if available
@@ -386,6 +421,7 @@ export default function Home() {
     setEditableResult(null)
     setStagingArea({ products: [], sourcePatternIds: new Map() })
     setSelectedPlacement(null)
+    setHistoryState(clearHistory())
 
     // Reset selectedPattern to the original result's first pattern
     if (result && result.patterns && result.patterns.length > 0) {
@@ -395,12 +431,88 @@ export default function Home() {
     }
   }
 
+  const handleUndo = () => {
+    if (!editMode || !canUndo(historyState)) return
+
+    const newHistory = undo(historyState)
+    if (!newHistory) return
+
+    const snapshot = getCurrentSnapshot(newHistory)
+    if (!snapshot) return
+
+    // Restore state from snapshot
+    setEditableResult(snapshot.editableResult)
+    setStagingArea(snapshot.stagingArea)
+
+    // Restore selectedPattern
+    if (snapshot.selectedPatternId) {
+      const pattern = snapshot.editableResult.patterns.find(
+        (p) => p.patternId === snapshot.selectedPatternId
+      )
+      if (pattern) {
+        setSelectedPattern(pattern)
+      } else if (snapshot.editableResult.patterns.length > 0) {
+        // Fallback to first pattern if saved pattern not found
+        setSelectedPattern(snapshot.editableResult.patterns[0])
+      }
+    }
+
+    setHistoryState(newHistory)
+  }
+
+  const handleRedo = () => {
+    if (!editMode || !canRedo(historyState)) return
+
+    const newHistory = redo(historyState)
+    if (!newHistory) return
+
+    const snapshot = getCurrentSnapshot(newHistory)
+    if (!snapshot) return
+
+    // Restore state from snapshot
+    setEditableResult(snapshot.editableResult)
+    setStagingArea(snapshot.stagingArea)
+
+    // Restore selectedPattern
+    if (snapshot.selectedPatternId) {
+      const pattern = snapshot.editableResult.patterns.find(
+        (p) => p.patternId === snapshot.selectedPatternId
+      )
+      if (pattern) {
+        setSelectedPattern(pattern)
+      } else if (snapshot.editableResult.patterns.length > 0) {
+        // Fallback to first pattern if saved pattern not found
+        setSelectedPattern(snapshot.editableResult.patterns[0])
+      }
+    }
+
+    setHistoryState(newHistory)
+  }
+
+  const handlePatternSelect = (pattern: PatternGroup) => {
+    if (!editMode || !editableResult) {
+      // View mode: just select the pattern
+      setSelectedPattern(pattern)
+      return
+    }
+
+    // Edit mode: save history before switching patterns
+    const snapshot = createSnapshot(
+      editableResult,
+      stagingArea,
+      pattern.patternId,
+      'pattern-switch'
+    )
+    setHistoryState(pushHistory(historyState, snapshot))
+    setSelectedPattern(pattern)
+  }
+
   const handleToggleSnap = () => {
     setSnapEnabled(!snapEnabled)
   }
 
-  const handlePlacementUpdate = (updatedPlacements: Placement[]) => {
-    if (!editableResult || !selectedPattern) return
+  const handlePlacementUpdate = (updatedPlacements: Placement[]): EditableResult | null => {
+    if (!editableResult || !selectedPattern) return null
 
     // Update the placements for the selected pattern
     const updatedPatterns = editableResult.patterns.map((pattern) => {
@@ -426,13 +538,16 @@ export default function Home() {
     const totalCount = updatedPatterns.reduce((sum, p) => sum + p.count, 0)
     const averageYield = totalCount > 0 ? totalYield / totalCount : 0
 
-    // Update editableResult with new patterns
-    setEditableResult({
+    // Create updated editableResult
+    const updatedEditableResult: EditableResult = {
       ...editableResult,
       patterns: updatedPatterns,
       averageYield,
       isEdited: true,
-    })
+    }
+
+    // Update state
+    setEditableResult(updatedEditableResult)
 
     // Update selectedPattern to reflect changes
     const updatedSelectedPattern = updatedPatterns.find(
@@ -441,6 +556,9 @@ export default function Home() {
     if (updatedSelectedPattern) {
       setSelectedPattern(updatedSelectedPattern)
     }
+
+    // Return the updated result for snapshot creation
+    return updatedEditableResult
   }
 
   const handlePlacementClick = (placement: Placement) => {
@@ -483,7 +601,18 @@ export default function Home() {
         ...selectedPattern.placements.slice(0, placementIndex),
         ...selectedPattern.placements.slice(placementIndex + 1),
       ]
-      handlePlacementUpdate(updatedPlacements)
+      const updatedResult = handlePlacementUpdate(updatedPlacements)
+
+      // Save history with the updated result
+      if (updatedResult) {
+        const snapshot = createSnapshot(
+          updatedResult,
+          { products: newStagingProducts, sourcePatternIds: newSourcePatternIds },
+          selectedPattern.patternId,
+          'staging-add'
+        )
+        setHistoryState(pushHistory(historyState, snapshot))
+      }
     }
   }
 
@@ -531,7 +660,7 @@ export default function Home() {
     // Allow placement even if invalid (will be shown in red)
     // Add to current pattern
     const updatedPlacements = [...selectedPattern.placements, newPlacement]
-    handlePlacementUpdate(updatedPlacements)
+    const updatedResult = handlePlacementUpdate(updatedPlacements)
 
     // Remove count items from staging area (matching base ID)
     let removedCount = 0
@@ -553,7 +682,40 @@ export default function Home() {
 
     // Clear selection
     setSelectedPlacement(null)
+
+    // Save history with the updated result
+    if (updatedResult) {
+      const snapshot = createSnapshot(
+        updatedResult,
+        { products: newStagingProducts, sourcePatternIds: stagingArea.sourcePatternIds },
+        selectedPattern.patternId,
+        'staging-place'
+      )
+      setHistoryState(pushHistory(historyState, snapshot))
+    }
   }
+
+  // Keyboard shortcuts for undo/redo
+  useEffect(() => {
+    if (!editMode) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Z or Cmd+Z - Undo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        handleUndo()
+      }
+
+      // Ctrl+Shift+Z or Cmd+Shift+Z - Redo
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) {
+        e.preventDefault()
+        handleRedo()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [editMode, historyState, editableResult, stagingArea, selectedPattern])
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -685,9 +847,13 @@ export default function Home() {
                       ? { patternId: selectedPattern.patternId, count: selectedPattern.count }
                       : null
                   }
+                  canUndo={canUndo(historyState)}
+                  canRedo={canRedo(historyState)}
                   onEnterEditMode={handleEnterEditMode}
                   onApply={handleApplyEdit}
                   onDiscard={handleDiscardEdit}
+                  onUndo={handleUndo}
+                  onRedo={handleRedo}
                   onToggleSnap={handleToggleSnap}
                   onSplitPattern={handleSplitPatternClick}
                 />
@@ -703,7 +869,7 @@ export default function Home() {
                 <PatternGroupList
                   patterns={editMode && editableResult ? editableResult.patterns : result.patterns}
                   selectedPatternId={selectedPattern?.patternId}
-                  onSelectPattern={setSelectedPattern}
+                  onSelectPattern={handlePatternSelect}
                 />
 
                 {/* Staging Area (in edit mode) */}

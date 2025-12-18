@@ -9,12 +9,20 @@ interface EditModeToolbarProps {
   hasResult: boolean
   /** 選択中のパターン */
   selectedPattern: { patternId: string; count: number } | null
+  /** Undoが可能かどうか */
+  canUndo: boolean
+  /** Redoが可能かどうか */
+  canRedo: boolean
   /** 編集モードに入る */
   onEnterEditMode: () => void
   /** 編集内容を適用 */
   onApply: () => void
   /** 編集内容を破棄 */
   onDiscard: () => void
+  /** Undo実行 */
+  onUndo: () => void
+  /** Redo実行 */
+  onRedo: () => void
   /** スナップON/OFF切り替え */
   onToggleSnap: () => void
   /** パターン分割ボタンクリック */
@@ -30,9 +38,13 @@ export function EditModeToolbar({
   snapEnabled,
   hasResult,
   selectedPattern,
+  canUndo,
+  canRedo,
   onEnterEditMode,
   onApply,
   onDiscard,
+  onUndo,
+  onRedo,
   onToggleSnap,
   onSplitPattern,
 }: EditModeToolbarProps) {
@@ -49,7 +61,7 @@ export function EditModeToolbar({
             編集モード
           </Button>
         ) : (
-          // 編集モード: 適用、破棄、スナップ切り替えを表示
+          // 編集モード: 適用、破棄、Undo/Redo、スナップ切り替えを表示
           <>
             <div className="flex items-center gap-2">
               <Button onClick={onApply} variant="primary" size="md">
@@ -58,6 +70,49 @@ export function EditModeToolbar({
               <Button onClick={onDiscard} variant="secondary" size="md">
                 ✕ すべて破棄
               </Button>
+            </div>
+
+            <div className="h-6 w-px bg-gray-300" />
+
+            {/* Undo/Redo buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onUndo}
+                disabled={!canUndo}
+                className={`
+                  flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium
+                  transition-colors
+                  ${
+                    canUndo
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                  }
+                `}
+                title="元に戻す (Ctrl+Z / Cmd+Z)"
+              >
+                <span className="text-base">↶</span>
+                <span className="hidden sm:inline">元に戻す</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={onRedo}
+                disabled={!canRedo}
+                className={`
+                  flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium
+                  transition-colors
+                  ${
+                    canRedo
+                      ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-gray-50 text-gray-400 cursor-not-allowed'
+                  }
+                `}
+                title="やり直す (Ctrl+Shift+Z / Cmd+Shift+Z)"
+              >
+                <span className="text-base">↷</span>
+                <span className="hidden sm:inline">やり直す</span>
+              </button>
             </div>
 
             <div className="h-6 w-px bg-gray-300" />

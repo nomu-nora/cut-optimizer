@@ -66,3 +66,50 @@ export interface Modification {
   /** タイムスタンプ */
   timestamp: Date
 }
+
+/**
+ * 履歴スナップショットの理由
+ */
+export type HistorySnapshotReason =
+  | 'pattern-switch' // パターン切替
+  | 'pattern-split' // パターン分割
+  | 'staging-add' // 仮置き場へ追加
+  | 'staging-place' // 仮置き場から配置
+  | 'initial' // 初期状態
+
+/**
+ * 履歴スナップショット
+ */
+export interface HistorySnapshot {
+  /** スナップショットID */
+  id: string
+
+  /** 編集中の結果 */
+  editableResult: EditableResult
+
+  /** 仮置き場の状態 */
+  stagingArea: StagingArea
+
+  /** 選択中のパターンID */
+  selectedPatternId: string | undefined
+
+  /** タイムスタンプ */
+  timestamp: Date
+
+  /** スナップショット理由 */
+  reason: HistorySnapshotReason
+}
+
+/**
+ * 履歴管理の状態
+ */
+export interface HistoryState {
+  /** 履歴スタック */
+  stack: HistorySnapshot[]
+
+  /** 現在のインデックス */
+  currentIndex: number
+
+  /** 最大履歴数 */
+  maxSize: number
+}

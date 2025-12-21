@@ -18,6 +18,11 @@ export interface EditablePlacementDiagramProps {
   onPlacementUpdate: (updatedPlacements: Placement[]) => void
   onPlacementClick: (placement: Placement) => void
   onBackgroundClick: (x: number, y: number) => void
+  // Navigation props
+  currentIndex?: number
+  totalPatterns?: number
+  onPrevPattern?: () => void
+  onNextPattern?: () => void
 }
 
 /**
@@ -33,6 +38,10 @@ export function EditablePlacementDiagram({
   onPlacementUpdate,
   onPlacementClick,
   onBackgroundClick,
+  currentIndex,
+  totalPatterns,
+  onPrevPattern,
+  onNextPattern,
 }: EditablePlacementDiagramProps) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [draggingPlacement, setDraggingPlacement] = useState<Placement | null>(null)
@@ -47,6 +56,9 @@ export function EditablePlacementDiagram({
 
   // Offcuts have no margin (already cut)
   const margin = pattern.isOffcut ? 0 : cutConfig.margin
+
+  // Create effective cut config with margin=0 for offcuts
+  const effectiveCutConfig: CutConfig = pattern.isOffcut ? { ...cutConfig, margin: 0 } : cutConfig
 
   const SCALE = 0.4 // Scale factor to fit diagram on screen
   const viewWidth = plateWidth * SCALE
@@ -64,7 +76,7 @@ export function EditablePlacementDiagram({
     const otherPlacements = draggingPlacement
       ? pattern.placements.filter((p) => p.item.id !== draggingPlacement.item.id)
       : pattern.placements
-    return generateSnapPoints(otherPlacements, cutConfig, plateWidth, plateHeight)
+    return generateSnapPoints(otherPlacements, effectiveCutConfig, plateWidth, plateHeight)
   }, [pattern.placements, cutConfig, snapEnabled, draggingPlacement, plateWidth, plateHeight])
 
   const snapThreshold = getSnapThreshold()
@@ -244,19 +256,57 @@ export function EditablePlacementDiagram({
         y: tempPosition.y,
       }
       const otherPlacements = pattern.placements.filter((p) => p.item.id !== placement.item.id)
-      return !isValidPlacement(testPlacement, otherPlacements, effectivePlateConfig, cutConfig)
+      return !isValidPlacement(
+        testPlacement,
+        otherPlacements,
+        effectivePlateConfig,
+        effectiveCutConfig
+      )
     }
 
     // After drag: check actual placement position
     const otherPlacements = pattern.placements.filter((p) => p.item.id !== placement.item.id)
-    return !isValidPlacement(placement, otherPlacements, effectivePlateConfig, cutConfig)
+    return !isValidPlacement(placement, otherPlacements, effectivePlateConfig, effectiveCutConfig)
   }
 
   return (
-    <Card
-      title={`配置図 - パターン ${pattern.patternId}${pattern.isOffcut && pattern.offcutInfo ? ` (${pattern.offcutInfo.name})` : ''} (編集モード)`}
-    >
+    <Card>
       <div className="space-y-4">
+        {/* Header with navigation */}
+        <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">
+            配置図 - パターン {pattern.patternId}
+            {pattern.isOffcut && pattern.offcutInfo && ` (${pattern.offcutInfo.name})`}
+            <span className="ml-2 text-sm font-normal text-blue-600">(編集モード)</span>
+          </h3>
+
+          {/* Navigation buttons */}
+          {totalPatterns && totalPatterns > 1 && currentIndex !== undefined && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600">
+                {currentIndex + 1} / {totalPatterns}
+              </span>
+              <div className="flex gap-1">
+                <button
+                  onClick={onPrevPattern}
+                  disabled={currentIndex === 0}
+                  className="px-3 py-1 text-sm font-medium rounded border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="前のパターン"
+                >
+                  ← 前
+                </button>
+                <button
+                  onClick={onNextPattern}
+                  disabled={currentIndex === totalPatterns - 1}
+                  className="px-3 py-1 text-sm font-medium rounded border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="次のパターン"
+                >
+                  次 →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
         {/* Diagram info */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
           <div className="bg-gray-50 p-2 rounded">

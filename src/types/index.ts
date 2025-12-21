@@ -21,4 +21,20 @@ export type { PatternGroup, CalculationResult, SkippedItem, CalculationStats } f
 export type { OffcutPlate, OffcutUsageInfo, OffcutUsage } from './offcut'
 
 // 編集機能関連の型
-export type { EditableResult, StagingArea, SnapPoint, Modification } from './editing'
+export type {
+  EditableResult,
+  StagingArea,
+  SnapPoint,
+  Modification,
+  HistoryState,
+  HistorySnapshot,
+  HistorySnapshotReason,
+} from './editing'
+
+// 最適化関連の型（v1.6）
+export type {
+  OffcutSize,
+  SwapCandidate,
+  ReorganizationResult,
+  ImprovementEntry,
+} from './optimization'

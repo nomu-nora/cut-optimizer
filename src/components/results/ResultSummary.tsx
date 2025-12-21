@@ -133,6 +133,84 @@ export function ResultSummary({
               </div>
             )}
           </div>
+
+          {/* 歩留まり詳細（v1.5 - 最適化分析） */}
+          {result.yieldExcludingLast !== undefined && (
+            <div className="pt-6 border-t border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                歩留まり詳細（最適化分析）
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* 最後を除く平均 */}
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                  <p className="text-sm text-emerald-600 font-medium mb-1">最後を除く平均</p>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-3xl font-bold text-emerald-900">
+                      {result.yieldExcludingLast.toFixed(1)}
+                    </p>
+                    {result.meetsYieldTarget && (
+                      <span className="text-emerald-600 text-sm font-medium">✓ 目標達成</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-emerald-600 mt-1">
+                    % (目標: {result.targetYield || 85}%以上)
+                  </p>
+                </div>
+
+                {/* 最後のパターン */}
+                <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                  <p className="text-sm text-slate-600 font-medium mb-1">最後のパターン</p>
+                  <p className="text-3xl font-bold text-slate-900">
+                    {result.lastPatternYield?.toFixed(1) || '—'}
+                  </p>
+                  <p className="text-xs text-slate-600 mt-1">% (調整用)</p>
+                </div>
+
+                {/* 最適化状態 */}
+                <div
+                  className={`rounded-lg p-4 border ${
+                    result.meetsYieldTarget
+                      ? 'bg-green-50 border-green-200'
+                      : 'bg-yellow-50 border-yellow-200'
+                  }`}
+                >
+                  <p
+                    className={`text-sm font-medium mb-1 ${
+                      result.meetsYieldTarget ? 'text-green-600' : 'text-yellow-600'
+                    }`}
+                  >
+                    最適化状態
+                  </p>
+                  <p
+                    className={`text-xl font-bold ${
+                      result.meetsYieldTarget ? 'text-green-900' : 'text-yellow-900'
+                    }`}
+                  >
+                    {result.meetsYieldTarget ? '最適' : '改善可能'}
+                  </p>
+                  <p
+                    className={`text-xs mt-1 ${
+                      result.meetsYieldTarget ? 'text-green-600' : 'text-yellow-600'
+                    }`}
+                  >
+                    {result.meetsYieldTarget ? '高効率配置' : '調整を検討'}
+                  </p>
+                </div>
+              </div>
+
+              {/* 説明テキスト */}
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <p className="text-xs text-gray-600">
+                  <strong>最後を除く平均:</strong>{' '}
+                  最後のパターン以外の歩留まり平均値。85%以上が推奨されます。
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  <strong>最後のパターン:</strong>{' '}
+                  調整用パターンの歩留まり。低くても問題ありません（端材として再利用可能）。
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </Card>

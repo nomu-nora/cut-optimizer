@@ -41,6 +41,16 @@ export interface CalculationResult {
   skippedItems?: SkippedItem[]
   /** 端材使用情報 */
   offcutUsage?: OffcutUsage
+
+  // ===== v1.5: 新規追加フィールド =====
+  /** 最後のパターンを除いた平均歩留まり率（%） */
+  yieldExcludingLast?: number
+  /** 最後のパターンの歩留まり率（%） */
+  lastPatternYield?: number
+  /** 歩留まり目標（85%以上）を達成したか */
+  meetsYieldTarget?: boolean
+  /** 歩留まり目標値（デフォルト: 85%） */
+  targetYield?: number
 }
 
 /**

@@ -14,11 +14,18 @@ import type {
 import { expandItems, sortByStrategy, type SortStrategy } from './sort'
 import { decideRotation, type RotationStrategy } from './placement'
 import { splitSpace } from './space'
-import { calculateYield, calculateAverageYield } from './yield'
+import {
+  calculateYield,
+  calculateAverageYield,
+  calculateYieldExcludingLast,
+  getLastPatternYield,
+  meetsYieldTarget,
+} from './yield'
 import { groupPatterns, getTotalPlatesFromPatterns } from './pattern'
 import { calculateMaximalRectangles, type OptimizationGoal } from './maximal-rectangles'
 import { optimizeWithGA } from './genetic-algorithm'
 import { placeOnOffcuts, getRemainingItems, mergeResults } from './offcut-placement'
+import { calculateWithTwoStageOptimization } from './two-stage-optimizer'
 
 /**
  * 配置戦略の組み合わせ
@@ -249,11 +256,22 @@ function calculateWithStrategy(
   const averageYield = calculateAverageYield(plates)
   const totalCost = totalPlates * plateConfig.unitPrice
 
+  // ===== v1.5: 新しい歩留まりメトリクスを計算 =====
+  const targetYield = 85
+  const yieldExcludingLast = calculateYieldExcludingLast(patterns)
+  const lastPatternYield = getLastPatternYield(patterns)
+  const meetsTarget = meetsYieldTarget(patterns, targetYield)
+
   return {
     patterns,
     totalPlates,
     averageYield,
     totalCost,
+    // v1.5: 新規フィールド
+    yieldExcludingLast,
+    lastPatternYield,
+    meetsYieldTarget: meetsTarget,
+    targetYield,
   }
 }
 
@@ -368,8 +386,8 @@ export function calculate(
     return optimizeWithGA(plateConfig, cutConfig, items, optimizationGoal, useGridGrouping)
   }
 
-  // 通常のMaximal Rectangles
-  return calculateMaximalRectangles(
+  // 2段階最適化を使用（デフォルト）
+  return calculateWithTwoStageOptimization(
     plateConfig,
     cutConfig,
     items,

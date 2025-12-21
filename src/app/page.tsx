@@ -6,10 +6,8 @@ import {
   PlateConfigForm,
   CutConfigForm,
   ProductList,
-  ProductForm,
   PresetManager,
   CalculationControl,
-  OffcutForm,
   OffcutList,
   OffcutPresetManager,
 } from '@/components/forms'
@@ -69,11 +67,9 @@ export default function Home() {
 
   // Items state
   const [items, setItems] = useState<Item[]>([])
-  const [editingItem, setEditingItem] = useState<Item | undefined>()
 
   // Offcuts state
   const [offcuts, setOffcuts] = useState<OffcutPlate[]>([])
-  const [editingOffcut, setEditingOffcut] = useState<OffcutPlate | undefined>()
 
   // Calculation state
   const [result, setResult] = useState<CalculationResult | null>(null)
@@ -102,67 +98,37 @@ export default function Home() {
 
   // Handlers
   const handleAddItem = (item: Item) => {
-    if (editingItem) {
-      // Update existing item
-      setItems(items.map((i) => (i.id === item.id ? item : i)))
-      setEditingItem(undefined)
-    } else {
-      // Add new item
-      setItems([...items, item])
-    }
+    setItems([...items, item])
   }
 
-  const handleEditItem = (item: Item) => {
-    setEditingItem(item)
+  const handleUpdateItem = (item: Item) => {
+    setItems(items.map((i) => (i.id === item.id ? item : i)))
   }
 
   const handleDeleteItem = (itemId: string) => {
     setItems(items.filter((i) => i.id !== itemId))
-    if (editingItem?.id === itemId) {
-      setEditingItem(undefined)
-    }
-  }
-
-  const handleCancelEdit = () => {
-    setEditingItem(undefined)
   }
 
   const handleLoadPreset = (presetItems: Item[]) => {
     setItems(presetItems)
-    setEditingItem(undefined)
     setResult(null)
     setSelectedPattern(undefined)
   }
 
   const handleAddOffcut = (offcut: OffcutPlate) => {
-    if (editingOffcut) {
-      // Update existing offcut
-      setOffcuts(offcuts.map((o) => (o.id === offcut.id ? offcut : o)))
-      setEditingOffcut(undefined)
-    } else {
-      // Add new offcut
-      setOffcuts([...offcuts, offcut])
-    }
+    setOffcuts([...offcuts, offcut])
   }
 
-  const handleEditOffcut = (offcut: OffcutPlate) => {
-    setEditingOffcut(offcut)
+  const handleUpdateOffcut = (offcut: OffcutPlate) => {
+    setOffcuts(offcuts.map((o) => (o.id === offcut.id ? offcut : o)))
   }
 
   const handleDeleteOffcut = (offcutId: string) => {
     setOffcuts(offcuts.filter((o) => o.id !== offcutId))
-    if (editingOffcut?.id === offcutId) {
-      setEditingOffcut(undefined)
-    }
-  }
-
-  const handleCancelEditOffcut = () => {
-    setEditingOffcut(undefined)
   }
 
   const handleLoadOffcutPreset = (presetOffcuts: OffcutPlate[]) => {
     setOffcuts(presetOffcuts)
-    setEditingOffcut(undefined)
     setResult(null)
     setSelectedPattern(undefined)
   }
@@ -209,8 +175,6 @@ export default function Home() {
       setOffcuts([])
       setResult(null)
       setSelectedPattern(undefined)
-      setEditingItem(undefined)
-      setEditingOffcut(undefined)
       setError(null)
     }
   }
@@ -507,6 +471,29 @@ export default function Home() {
     setSelectedPattern(pattern)
   }
 
+  // Pattern navigation handlers
+  const handlePrevPattern = () => {
+    if (!selectedPattern) return
+    const patterns = editMode ? editableResult?.patterns : result?.patterns
+    if (!patterns) return
+
+    const currentIndex = patterns.findIndex((p) => p.patternId === selectedPattern.patternId)
+    if (currentIndex > 0) {
+      handlePatternSelect(patterns[currentIndex - 1])
+    }
+  }
+
+  const handleNextPattern = () => {
+    if (!selectedPattern) return
+    const patterns = editMode ? editableResult?.patterns : result?.patterns
+    if (!patterns) return
+
+    const currentIndex = patterns.findIndex((p) => p.patternId === selectedPattern.patternId)
+    if (currentIndex < patterns.length - 1) {
+      handlePatternSelect(patterns[currentIndex + 1])
+    }
+  }
+
   const handleToggleSnap = () => {
     setSnapEnabled(!snapEnabled)
   }
@@ -613,6 +600,11 @@ export default function Home() {
         )
         setHistoryState(pushHistory(historyState, snapshot))
       }
+    }
+
+    // Automatically select the first item added to staging area (keep selection state)
+    if (newStagingProducts.length > 0) {
+      setSelectedPlacement(newStagingProducts[newStagingProducts.length - selectedPattern.count])
     }
   }
 
@@ -740,24 +732,22 @@ export default function Home() {
             {/* Offcut Section */}
             <OffcutPresetManager onLoadPreset={handleLoadOffcutPreset} />
 
-            <OffcutForm
-              editItem={editingOffcut}
-              onSubmit={handleAddOffcut}
-              onCancel={editingOffcut ? handleCancelEditOffcut : undefined}
+            <OffcutList
+              offcuts={offcuts}
+              onAddOffcut={handleAddOffcut}
+              onUpdateOffcut={handleUpdateOffcut}
+              onDelete={handleDeleteOffcut}
             />
-
-            <OffcutList offcuts={offcuts} onEdit={handleEditOffcut} onDelete={handleDeleteOffcut} />
 
             {/* Product Section */}
             <PresetManager onLoadPreset={handleLoadPreset} />
 
-            <ProductForm
-              editItem={editingItem}
-              onSubmit={handleAddItem}
-              onCancel={editingItem ? handleCancelEdit : undefined}
+            <ProductList
+              items={items}
+              onAddItem={handleAddItem}
+              onUpdateItem={handleUpdateItem}
+              onDelete={handleDeleteItem}
             />
-
-            <ProductList items={items} onEdit={handleEditItem} onDelete={handleDeleteItem} />
 
             {/* Clear Button */}
             <div className="flex justify-end">
@@ -882,11 +872,17 @@ export default function Home() {
                 )}
 
                 {/* Placement Diagram */}
-                {selectedPattern && !editMode && (
+                {selectedPattern && !editMode && result && (
                   <PlacementDiagram
                     pattern={selectedPattern}
                     plateConfig={plateConfig}
                     cutConfig={cutConfig}
+                    currentIndex={result.patterns.findIndex(
+                      (p) => p.patternId === selectedPattern.patternId
+                    )}
+                    totalPatterns={result.patterns.length}
+                    onPrevPattern={handlePrevPattern}
+                    onNextPattern={handleNextPattern}
                   />
                 )}
 
@@ -901,6 +897,12 @@ export default function Home() {
                     onPlacementUpdate={handlePlacementUpdate}
                     onPlacementClick={handlePlacementClick}
                     onBackgroundClick={handleBackgroundClick}
+                    currentIndex={editableResult.patterns.findIndex(
+                      (p) => p.patternId === selectedPattern.patternId
+                    )}
+                    totalPatterns={editableResult.patterns.length}
+                    onPrevPattern={handlePrevPattern}
+                    onNextPattern={handleNextPattern}
                   />
                 )}
               </>

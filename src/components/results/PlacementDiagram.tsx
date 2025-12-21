@@ -5,9 +5,22 @@ export interface PlacementDiagramProps {
   pattern: PatternGroup
   plateConfig: PlateConfig
   cutConfig: CutConfig
+  // Navigation props
+  currentIndex?: number
+  totalPatterns?: number
+  onPrevPattern?: () => void
+  onNextPattern?: () => void
 }
 
-export function PlacementDiagram({ pattern, plateConfig, cutConfig }: PlacementDiagramProps) {
+export function PlacementDiagram({
+  pattern,
+  plateConfig,
+  cutConfig,
+  currentIndex,
+  totalPatterns,
+  onPrevPattern,
+  onNextPattern,
+}: PlacementDiagramProps) {
   // Use offcut dimensions if this is an offcut pattern
   const plateWidth =
     pattern.isOffcut && pattern.offcutInfo ? pattern.offcutInfo.width : plateConfig.width
@@ -28,10 +41,42 @@ export function PlacementDiagram({ pattern, plateConfig, cutConfig }: PlacementD
   const effectiveHeight = plateHeight - margin * 2
 
   return (
-    <Card
-      title={`配置図 - パターン ${pattern.patternId}${pattern.isOffcut && pattern.offcutInfo ? ` (${pattern.offcutInfo.name})` : ''}`}
-    >
+    <Card>
       <div className="space-y-4">
+        {/* Header with navigation */}
+        <div className="flex items-center justify-between pb-4 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">
+            配置図 - パターン {pattern.patternId}
+            {pattern.isOffcut && pattern.offcutInfo && ` (${pattern.offcutInfo.name})`}
+          </h3>
+
+          {/* Navigation buttons */}
+          {totalPatterns && totalPatterns > 1 && currentIndex !== undefined && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600">
+                {currentIndex + 1} / {totalPatterns}
+              </span>
+              <div className="flex gap-1">
+                <button
+                  onClick={onPrevPattern}
+                  disabled={currentIndex === 0}
+                  className="px-3 py-1 text-sm font-medium rounded border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="前のパターン"
+                >
+                  ← 前
+                </button>
+                <button
+                  onClick={onNextPattern}
+                  disabled={currentIndex === totalPatterns - 1}
+                  className="px-3 py-1 text-sm font-medium rounded border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  title="次のパターン"
+                >
+                  次 →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
         {/* Diagram info */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
           <div className="bg-gray-50 p-2 rounded">

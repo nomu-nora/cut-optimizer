@@ -15,7 +15,13 @@ import type {
   SkippedItem,
 } from '@/types'
 import { expandItems, sortByArea } from './sort'
-import { calculateYield, calculateAverageYield } from './yield'
+import {
+  calculateYield,
+  calculateAverageYield,
+  calculateYieldExcludingLast,
+  getLastPatternYield,
+  meetsYieldTarget,
+} from './yield'
 import { groupPatterns, getTotalPlatesFromPatterns } from './pattern'
 import { type GridGroup } from './grid-grouping'
 
@@ -482,6 +488,7 @@ function findSameSizeItems(
 
 /**
  * 空き矩形に収まるグリッドを動的に生成
+ * v1.5 Phase 2 Step 2: 配置戦略に応じたminGridSize調整を追加
  */
 function tryCreateDynamicGrid(
   targetItem: Item,
@@ -489,12 +496,33 @@ function tryCreateDynamicGrid(
   freeRectangle: FreeRectangle,
   cutWidth: number,
   minGridSize: number = 4,
-  optimizationGoal: OptimizationGoal = 'yield'
+  optimizationGoal: OptimizationGoal = 'yield',
+  strategy: PlacementStrategy = 'balanced'
 ): GridGroup | null {
+  // ===== v1.5 Phase 2 Step 2: 戦略に応じたminGridSize調整 =====
+  // 歩留まり優先モードでのみ戦略を適用
+  let adjustedMinGridSize = minGridSize
+  if (optimizationGoal === 'yield') {
+    switch (strategy) {
+      case 'aggressive':
+        // 積極的: より小さいグリッドも許可（より詰め込む）
+        adjustedMinGridSize = Math.max(2, minGridSize - 1)
+        break
+      case 'balanced':
+        // バランス型: デフォルトのまま
+        adjustedMinGridSize = minGridSize
+        break
+      case 'conservative':
+        // 保守的: より大きいグリッドのみ（品質維持）
+        adjustedMinGridSize = minGridSize + 1
+        break
+    }
+  }
+
   // 同じサイズのアイテムを探す
   const sameSizeItems = findSameSizeItems(targetItem, remainingItems)
 
-  if (sameSizeItems.length < minGridSize) {
+  if (sameSizeItems.length < adjustedMinGridSize) {
     return null // グリッドを作るには少なすぎる
   }
 
@@ -539,26 +567,57 @@ function tryCreateDynamicGrid(
 
   if (candidates.length === 0) return null
 
-  // 最適化目標に応じてグリッドを選択
-  if (optimizationGoal === 'remaining-space') {
-    // 余りスペース優先: 正方形に近いグリッドを優先
-    candidates.sort((a, b) => {
-      // グリッドのアスペクト比を計算
-      const aspectRatioA = Math.max(a.rows, a.cols) / Math.min(a.rows, a.cols)
-      const aspectRatioB = Math.max(b.rows, b.cols) / Math.min(b.rows, b.cols)
+  // ===== v1.5 Phase 2 Step 3: 多次元スコアリング関数 =====
+  /**
+   * グリッドの品質をスコアリングする
+   * 使用率、アスペクト比、アイテム数、余白品質を考慮
+   */
+  const scoreGrid = (grid: GridGroup): number => {
+    // 1. 使用率: グリッドが空き矩形をどれだけ埋めるか (0-100)
+    const rectArea = freeRectangle.width * freeRectangle.height
+    const gridArea = grid.totalWidth * grid.totalHeight
+    const utilization = (gridArea / rectArea) * 100
 
-      // アスペクト比が小さい（正方形に近い）方を優先
-      if (Math.abs(aspectRatioA - aspectRatioB) > 0.1) {
-        return aspectRatioA - aspectRatioB
+    // 2. アスペクト比スコア: 正方形に近いほど高い (0-100)
+    const aspectRatio = Math.max(grid.rows, grid.cols) / Math.min(grid.rows, grid.cols)
+    const aspectScore = 100 / aspectRatio
+
+    // 3. アイテム数スコア: 正規化 (0-100)
+    const maxItems = Math.max(...candidates.map((c) => c.items.length))
+    const itemCountScore = (grid.items.length / maxItems) * 100
+
+    // 4. 余白品質: 残る余白が使いやすい形か (0-100)
+    const remainingWidth = freeRectangle.width - grid.totalWidth
+    const remainingHeight = freeRectangle.height - grid.totalHeight
+    const remainingArea = remainingWidth * remainingHeight
+    const remainingAspect =
+      Math.min(remainingWidth, remainingHeight) > 0
+        ? Math.max(remainingWidth, remainingHeight) / Math.min(remainingWidth, remainingHeight)
+        : 1
+    const remainingQuality = remainingArea > 0 ? 100 / remainingAspect : 50
+
+    // 最適化目標と戦略に応じて重み付け
+    if (optimizationGoal === 'remaining-space') {
+      // 余りスペース優先: 余白品質とアスペクト比を重視
+      return utilization * 20 + aspectScore * 30 + itemCountScore * 20 + remainingQuality * 30
+    } else {
+      // 歩留まり優先: 戦略に応じて調整
+      switch (strategy) {
+        case 'aggressive':
+          // 積極的: アイテム数と使用率を最大化
+          return utilization * 40 + itemCountScore * 50 + aspectScore * 10
+        case 'balanced':
+          // バランス型: 全要素をバランスよく
+          return utilization * 30 + itemCountScore * 35 + aspectScore * 20 + remainingQuality * 15
+        case 'conservative':
+          // 保守的: 余白品質も考慮
+          return utilization * 25 + itemCountScore * 30 + aspectScore * 25 + remainingQuality * 20
       }
-
-      // アスペクト比が同じなら、配置できるアイテム数が多い方を優先
-      return b.items.length - a.items.length
-    })
-  } else {
-    // 歩留まり優先: 最も多くのアイテムを配置できるグリッドを選択
-    candidates.sort((a, b) => b.items.length - a.items.length)
+    }
   }
+
+  // スコアが最も高いグリッドを選択
+  candidates.sort((a, b) => scoreGrid(b) - scoreGrid(a))
 
   return candidates[0]
 }
@@ -807,6 +866,91 @@ interface CalculationResultWithQuality extends CalculationResult {
   remainingSpaceQuality: number
 }
 
+// ===== v1.5 Phase 2 Step 2: 配置戦略の型定義 =====
+/**
+ * 配置戦略の種類
+ * - aggressive: 積極的に詰め込む（目標まで5%以上不足）
+ * - balanced: バランス型（目標に近い）
+ * - conservative: 保守的に維持（目標達成済み）
+ */
+type PlacementStrategy = 'aggressive' | 'balanced' | 'conservative'
+
+/**
+ * 配置進捗の評価結果
+ */
+interface PlacementProgress {
+  /** 現在の平均歩留まり（最後のパターンを除く） */
+  currentYield: number
+  /** 目標歩留まり */
+  targetYield: number
+  /** 目標との差分（正なら達成、負なら未達成） */
+  yieldGap: number
+  /** 推奨される配置戦略 */
+  strategy: PlacementStrategy
+}
+
+/**
+ * 配置進捗を評価し、適切な戦略を決定する
+ * 歩留まり優先モードでのみ使用
+ *
+ * @param plates 現在までの元板リスト
+ * @param targetYield 目標歩留まり率（デフォルト: 85%）
+ * @returns 配置進捗の評価結果
+ */
+function evaluatePlacementProgress(
+  plates: Array<{
+    id: string
+    placements: PlacedItem[]
+    freeRectangles: FreeRectangle[]
+    yield: number
+  }>,
+  targetYield: number = 85
+): PlacementProgress {
+  if (plates.length === 0) {
+    return {
+      currentYield: 0,
+      targetYield,
+      yieldGap: -targetYield,
+      strategy: 'aggressive',
+    }
+  }
+
+  // 簡易的に平均歩留まりを計算（最後のプレートを除く）
+  // Note: ここでのplatesは完成した元板のみなので、最後を除く計算が有効
+  let currentYield: number
+  if (plates.length === 1) {
+    // 元板が1枚のみの場合はその歩留まりを使用
+    currentYield = plates[0].yield
+  } else {
+    // 最後の元板を除いた平均を計算
+    const platesExcludingLast = plates.slice(0, -1)
+    const totalYield = platesExcludingLast.reduce((sum, p) => sum + p.yield, 0)
+    currentYield = totalYield / platesExcludingLast.length
+  }
+
+  const yieldGap = currentYield - targetYield
+
+  // 戦略を決定
+  let strategy: PlacementStrategy
+  if (yieldGap >= 0) {
+    // 目標達成済み → 保守的に維持
+    strategy = 'conservative'
+  } else if (yieldGap >= -5) {
+    // 目標に近い（-5%以内） → バランス型
+    strategy = 'balanced'
+  } else {
+    // 目標まで5%以上不足 → 積極的に詰め込む
+    strategy = 'aggressive'
+  }
+
+  return {
+    currentYield,
+    targetYield,
+    yieldGap,
+    strategy,
+  }
+}
+
 /**
  * 指定されたヒューリスティックでMaximal Rectangles アルゴリズムを実行
  */
@@ -846,19 +990,66 @@ function calculateMaximalRectanglesWithHeuristic(
     const currentItem = remainingItems[0]
     let placed = false
 
+    // ===== v1.5 Phase 2 Step 2: 配置戦略を評価 =====
+    // 歩留まり優先モードの場合、現在の進捗を評価して戦略を決定
+    let currentStrategy: PlacementStrategy = 'balanced'
+    if (optimizationGoal === 'yield' && plates.length > 0) {
+      const progress = evaluatePlacementProgress(plates, 85)
+      currentStrategy = progress.strategy
+    }
+
+    // ===== v1.5 Phase 2 Step 4: 空き矩形スコアリング関数 =====
+    /**
+     * 空き矩形の適合度をスコアリングする
+     * Best-fit度、位置、面積を考慮
+     */
+    const scoreFreeRectangle = (rect: FreeRectangle): number => {
+      const itemWidth = currentItem.width
+      const itemHeight = currentItem.height
+
+      // 1. Best-fit度: アイテムとサイズが近いほど高い (0-100)
+      const widthFit = Math.min(rect.width / itemWidth, itemWidth / rect.width)
+      const heightFit = Math.min(rect.height / itemHeight, itemHeight / rect.height)
+      const bestFitScore = (widthFit + heightFit) * 50
+
+      // 2. 位置スコア: 左下寄せ (0-100)
+      // 正規化のため、元板サイズで割る
+      const effectiveWidth = plateConfig.width - cutConfig.margin * 2
+      const effectiveHeight = plateConfig.height - cutConfig.margin * 2
+      const xScore = ((effectiveWidth - rect.x) / effectiveWidth) * 100
+      const yScore = ((effectiveHeight - rect.y) / effectiveHeight) * 100
+      const positionScore = (xScore + yScore) / 2
+
+      // 3. 面積スコア: 大きいほど高い (0-100)
+      const maxArea = effectiveWidth * effectiveHeight
+      const areaScore = ((rect.width * rect.height) / maxArea) * 100
+
+      // 最適化目標と戦略に応じて重み付け
+      if (optimizationGoal === 'remaining-space') {
+        // 余りスペース優先: 位置を重視
+        return positionScore * 50 + bestFitScore * 30 + areaScore * 20
+      } else {
+        // 歩留まり優先: 戦略に応じて調整
+        switch (currentStrategy) {
+          case 'aggressive':
+            // 積極的: Best-fit度を最大化（隙間を埋める）
+            return bestFitScore * 50 + areaScore * 40 + positionScore * 10
+          case 'balanced':
+            // バランス型: 全要素をバランスよく
+            return bestFitScore * 40 + areaScore * 30 + positionScore * 30
+          case 'conservative':
+            // 保守的: 位置も考慮（整然とした配置）
+            return bestFitScore * 35 + positionScore * 35 + areaScore * 30
+        }
+      }
+    }
+
     // グリッドグルーピングが有効な場合、動的にグリッドを試みる
     if (useGridGrouping) {
-      // 最適化目標に応じて空き矩形をソート
-      const sortedRects = [...currentPlate.freeRectangles].sort((a, b) => {
-        if (optimizationGoal === 'remaining-space') {
-          // 余りスペース優先: 左下寄せ（Y座標が大きい > X座標が小さい）
-          if (a.y !== b.y) return b.y - a.y // 下側を優先
-          return a.x - b.x // 左側を優先
-        } else {
-          // 歩留まり優先: 面積が大きい順
-          return b.width * b.height - a.width * a.height
-        }
-      })
+      // v1.5 Phase 2 Step 4: スコアリング関数を使用してソート
+      const sortedRects = [...currentPlate.freeRectangles].sort(
+        (a, b) => scoreFreeRectangle(b) - scoreFreeRectangle(a)
+      )
 
       for (const rect of sortedRects) {
         // この空き矩形に収まるグリッドを動的に生成
@@ -868,7 +1059,8 @@ function calculateMaximalRectanglesWithHeuristic(
           rect,
           cutConfig.cutWidth,
           4, // 最小4個からグリッド化
-          optimizationGoal
+          optimizationGoal,
+          currentStrategy // v1.5 Phase 2 Step 2: 戦略を渡す
         )
 
         if (grid) {
@@ -952,16 +1144,10 @@ function calculateMaximalRectanglesWithHeuristic(
           let placedInNewPlate = false
 
           if (useGridGrouping) {
-            const sortedRects = [...currentPlate.freeRectangles].sort((a, b) => {
-              if (optimizationGoal === 'remaining-space') {
-                // 余りスペース優先: 左下寄せ
-                if (a.y !== b.y) return b.y - a.y
-                return a.x - b.x
-              } else {
-                // 歩留まり優先: 面積が大きい順
-                return b.width * b.height - a.width * a.height
-              }
-            })
+            // v1.5 Phase 2 Step 4: スコアリング関数を使用してソート
+            const sortedRects = [...currentPlate.freeRectangles].sort(
+              (a, b) => scoreFreeRectangle(b) - scoreFreeRectangle(a)
+            )
 
             for (const rect of sortedRects) {
               const grid = tryCreateDynamicGrid(
@@ -970,7 +1156,8 @@ function calculateMaximalRectanglesWithHeuristic(
                 rect,
                 cutConfig.cutWidth,
                 4,
-                optimizationGoal
+                optimizationGoal,
+                currentStrategy // v1.5 Phase 2 Step 2: 戦略を渡す
               )
 
               if (grid) {
@@ -1111,7 +1298,39 @@ export function calculateMaximalRectangles(
           'bottom-left',
         ]
 
+  // ===== v1.5 Phase 2 Step 1: スコアリング関数を追加 =====
+  /**
+   * 結果の品質をスコアリングする関数
+   * 元板枚数を最優先し、最適化目標に応じて追加スコアを計算
+   */
+  const scoreResult = (result: CalculationResultWithQuality): number => {
+    // 元板枚数最優先（少ないほど高スコア）
+    const plateScore = -result.totalPlates * 10000
+
+    if (optimizationGoal === 'yield') {
+      // 歩留まり優先モード
+      const yieldExcludingLast = calculateYieldExcludingLast(result.patterns)
+      const meetsTarget = meetsYieldTarget(result.patterns, 85)
+      const targetBonus = meetsTarget ? 500 : 0 // 85%目標達成ボーナス
+
+      return (
+        plateScore +
+        yieldExcludingLast * 10 + // 最後を除く歩留まりを重視
+        result.averageYield * 5 + // 全体歩留まりも考慮
+        targetBonus // 目標達成ボーナス
+      )
+    } else {
+      // 余りスペース優先モード
+      return (
+        plateScore +
+        result.remainingSpaceQuality * 1000 + // 余白品質を重視
+        result.averageYield * 2 // 歩留まりも軽く考慮
+      )
+    }
+  }
+
   let bestResult: CalculationResultWithQuality | null = null
+  let bestScore = -Infinity
 
   // 各ヒューリスティックを試す
   for (const heuristic of heuristics) {
@@ -1125,28 +1344,13 @@ export function calculateMaximalRectangles(
         useGridGrouping
       )
 
-      // 最適化目標に応じてスコアを計算
-      const isBetter = (() => {
-        if (!bestResult) return true
+      // スコアを計算
+      const score = scoreResult(result)
 
-        // 常に元板枚数が少ない方を優先
-        if (result.totalPlates < bestResult.totalPlates) return true
-        if (result.totalPlates > bestResult.totalPlates) return false
-
-        // 枚数が同じ場合、最適化目標に応じて判定
-        switch (optimizationGoal) {
-          case 'yield':
-            // 歩留まり優先
-            return result.averageYield > bestResult.averageYield
-
-          case 'remaining-space':
-            // 余りスペース品質優先
-            return result.remainingSpaceQuality > bestResult.remainingSpaceQuality
-        }
-      })()
-
-      if (isBetter) {
+      // より高いスコアの結果を採用
+      if (score > bestScore) {
         bestResult = result
+        bestScore = score
       }
     } catch {
       // このヒューリスティックでは配置できなかった場合はスキップ
@@ -1162,9 +1366,20 @@ export function calculateMaximalRectangles(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { remainingSpaceQuality: _remainingSpaceQuality, ...finalResult } = bestResult
 
+  // ===== v1.5: 新しい歩留まりメトリクスを計算 =====
+  const targetYield = 85
+  const yieldExcludingLast = calculateYieldExcludingLast(finalResult.patterns)
+  const lastPatternYield = getLastPatternYield(finalResult.patterns)
+  const meetsTarget = meetsYieldTarget(finalResult.patterns, targetYield)
+
   // スキップされたアイテムを追加
   return {
     ...finalResult,
     skippedItems: skippedItems.length > 0 ? skippedItems : undefined,
+    // v1.5: 新規フィールド
+    yieldExcludingLast,
+    lastPatternYield,
+    meetsYieldTarget: meetsTarget,
+    targetYield,
   }
 }

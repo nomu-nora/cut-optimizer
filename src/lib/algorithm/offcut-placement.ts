@@ -684,5 +684,10 @@ export function mergeResults(
       totalItemsOnOffcuts,
       costSaved,
     },
+    // v1.5 フィールドを保持
+    yieldExcludingLast: newPlateResults.yieldExcludingLast,
+    lastPatternYield: newPlateResults.lastPatternYield,
+    meetsYieldTarget: newPlateResults.meetsYieldTarget,
+    targetYield: newPlateResults.targetYield,
   }
 }

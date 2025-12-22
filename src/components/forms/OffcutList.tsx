@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Card } from '@/components/ui'
 import type { OffcutPlate } from '@/types'
 import { v4 as uuidv4 } from 'uuid'
@@ -26,9 +26,51 @@ export function OffcutList({ offcuts, onAddOffcut, onUpdateOffcut, onDelete }: O
   const [newHeight, setNewHeight] = useState<number | ''>('')
   const [newQuantity, setNewQuantity] = useState<number | ''>('')
 
+  // 編集フィールド用のrefs
+  const editNameRef = useRef<HTMLInputElement>(null)
+  const editWidthRef = useRef<HTMLInputElement>(null)
+  const editHeightRef = useRef<HTMLInputElement>(null)
+  const editQuantityRef = useRef<HTMLInputElement>(null)
+
+  // 新規追加フィールド用のrefs
+  const newNameRef = useRef<HTMLInputElement>(null)
+  const newWidthRef = useRef<HTMLInputElement>(null)
+  const newHeightRef = useRef<HTMLInputElement>(null)
+  const newQuantityRef = useRef<HTMLInputElement>(null)
+
   // 合計値の計算
   const totalVarieties = offcuts.length
   const totalQuantity = offcuts.reduce((sum, offcut) => sum + offcut.quantity, 0)
+
+  // Enterキーハンドラー（編集行用）
+  const handleEditKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    nextRef: React.RefObject<HTMLInputElement | null> | null
+  ) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (nextRef?.current) {
+        nextRef.current.focus()
+      } else {
+        handleSave()
+      }
+    }
+  }
+
+  // Enterキーハンドラー（新規追加行用）
+  const handleNewKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    nextRef: React.RefObject<HTMLInputElement | null> | null
+  ) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (nextRef?.current) {
+        nextRef.current.focus()
+      } else {
+        handleAdd()
+      }
+    }
+  }
 
   // 編集開始
   const handleEdit = (offcut: OffcutPlate) => {
@@ -37,6 +79,7 @@ export function OffcutList({ offcuts, onAddOffcut, onUpdateOffcut, onDelete }: O
     setEditingWidth(offcut.width)
     setEditingHeight(offcut.height)
     setEditingQuantity(offcut.quantity)
+    setTimeout(() => editNameRef.current?.focus(), 0)
   }
 
   // 編集保存
@@ -123,42 +166,50 @@ export function OffcutList({ offcuts, onAddOffcut, onUpdateOffcut, onDelete }: O
                     {/* 名前 */}
                     <td className="px-4 py-3 whitespace-nowrap">
                       <input
+                        ref={editNameRef}
                         type="text"
                         value={editingName}
                         onChange={(e) => setEditingName(e.target.value)}
+                        onKeyDown={(e) => handleEditKeyDown(e, editWidthRef)}
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </td>
                     {/* Width */}
                     <td className="px-4 py-3 whitespace-nowrap">
                       <input
+                        ref={editWidthRef}
                         type="number"
                         value={editingWidth}
                         onChange={(e) =>
                           setEditingWidth(e.target.value === '' ? '' : Number(e.target.value))
                         }
+                        onKeyDown={(e) => handleEditKeyDown(e, editHeightRef)}
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </td>
                     {/* Height */}
                     <td className="px-4 py-3 whitespace-nowrap">
                       <input
+                        ref={editHeightRef}
                         type="number"
                         value={editingHeight}
                         onChange={(e) =>
                           setEditingHeight(e.target.value === '' ? '' : Number(e.target.value))
                         }
+                        onKeyDown={(e) => handleEditKeyDown(e, editQuantityRef)}
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </td>
                     {/* Quantity */}
                     <td className="px-4 py-3 whitespace-nowrap">
                       <input
+                        ref={editQuantityRef}
                         type="number"
                         value={editingQuantity}
                         onChange={(e) =>
                           setEditingQuantity(e.target.value === '' ? '' : Number(e.target.value))
                         }
+                        onKeyDown={(e) => handleEditKeyDown(e, null)}
                         className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </td>
@@ -183,7 +234,11 @@ export function OffcutList({ offcuts, onAddOffcut, onUpdateOffcut, onDelete }: O
 
               // 通常行
               return (
-                <tr key={offcut.id} className="hover:bg-gray-50">
+                <tr
+                  key={offcut.id}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => handleEdit(offcut)}
+                >
                   <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                     {offcut.name}
                   </td>
@@ -196,13 +251,10 @@ export function OffcutList({ offcuts, onAddOffcut, onUpdateOffcut, onDelete }: O
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
                     {offcut.quantity}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-right text-sm space-x-2">
-                    <button
-                      onClick={() => handleEdit(offcut)}
-                      className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-100 text-sm font-medium"
-                    >
-                      編集
-                    </button>
+                  <td
+                    className="px-4 py-3 whitespace-nowrap text-right text-sm"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <button
                       onClick={() => onDelete(offcut.id)}
                       className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm font-medium"
@@ -219,44 +271,52 @@ export function OffcutList({ offcuts, onAddOffcut, onUpdateOffcut, onDelete }: O
               {/* 名前入力 */}
               <td className="px-4 py-3 whitespace-nowrap">
                 <input
+                  ref={newNameRef}
                   type="text"
                   placeholder="端材名"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={(e) => handleNewKeyDown(e, newWidthRef)}
                   className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </td>
               {/* Width入力 */}
               <td className="px-4 py-3 whitespace-nowrap">
                 <input
+                  ref={newWidthRef}
                   type="number"
                   placeholder="幅"
                   value={newWidth}
                   onChange={(e) => setNewWidth(e.target.value === '' ? '' : Number(e.target.value))}
+                  onKeyDown={(e) => handleNewKeyDown(e, newHeightRef)}
                   className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </td>
               {/* Height入力 */}
               <td className="px-4 py-3 whitespace-nowrap">
                 <input
+                  ref={newHeightRef}
                   type="number"
                   placeholder="高さ"
                   value={newHeight}
                   onChange={(e) =>
                     setNewHeight(e.target.value === '' ? '' : Number(e.target.value))
                   }
+                  onKeyDown={(e) => handleNewKeyDown(e, newQuantityRef)}
                   className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </td>
               {/* Quantity入力 */}
               <td className="px-4 py-3 whitespace-nowrap">
                 <input
+                  ref={newQuantityRef}
                   type="number"
                   placeholder="個数"
                   value={newQuantity}
                   onChange={(e) =>
                     setNewQuantity(e.target.value === '' ? '' : Number(e.target.value))
                   }
+                  onKeyDown={(e) => handleNewKeyDown(e, null)}
                   className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </td>

@@ -88,6 +88,7 @@ export default function Home() {
     sourcePatternIds: new Map(),
   })
   const [selectedPlacement, setSelectedPlacement] = useState<Placement | null>(null)
+  const [selectedPlacements, setSelectedPlacements] = useState<Set<string>>(new Set())
   const [snapEnabled, setSnapEnabled] = useState(true)
   const [showSplitDialog, setShowSplitDialog] = useState(false)
   const [historyState, setHistoryState] = useState<HistoryState>({
@@ -548,6 +549,37 @@ export default function Home() {
     return updatedEditableResult
   }
 
+  // Helper: Generate unique ID for placement (for multi-selection tracking)
+  const getPlacementId = (placement: Placement): string => {
+    return `${placement.item.id}-${placement.x}-${placement.y}`
+  }
+
+  const handleSelectionToggle = (placementId: string, mode: 'toggle' | 'add' | 'set') => {
+    const newSelection = new Set(selectedPlacements)
+
+    if (mode === 'toggle') {
+      // Ctrl/Cmd+Click: toggle individual selection
+      if (newSelection.has(placementId)) {
+        newSelection.delete(placementId)
+      } else {
+        newSelection.add(placementId)
+      }
+    } else if (mode === 'add') {
+      // Shift+Click: add to selection
+      newSelection.add(placementId)
+    } else {
+      // Set: clear and select only this one
+      newSelection.clear()
+      newSelection.add(placementId)
+    }
+
+    setSelectedPlacements(newSelection)
+  }
+
+  const handleClearSelection = () => {
+    setSelectedPlacements(new Set())
+  }
+
   const handlePlacementClick = (placement: Placement) => {
     if (!editableResult || !selectedPattern) return
 
@@ -894,8 +926,12 @@ export default function Home() {
                     cutConfig={cutConfig}
                     snapEnabled={snapEnabled}
                     selectedPlacement={selectedPlacement}
+                    selectedPlacements={selectedPlacements}
+                    getPlacementId={getPlacementId}
                     onPlacementUpdate={handlePlacementUpdate}
                     onPlacementClick={handlePlacementClick}
+                    onSelectionToggle={handleSelectionToggle}
+                    onClearSelection={handleClearSelection}
                     onBackgroundClick={handleBackgroundClick}
                     currentIndex={editableResult.patterns.findIndex(
                       (p) => p.patternId === selectedPattern.patternId

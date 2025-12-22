@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState, useMemo, useEffect } from 'react'
 import { Card } from '@/components/ui'
 import { DraggableProduct, SnapGuide } from '@/components/editing'
 import {
@@ -15,8 +15,12 @@ export interface EditablePlacementDiagramProps {
   cutConfig: CutConfig
   snapEnabled: boolean
   selectedPlacement: Placement | null
+  selectedPlacements: Set<string>
+  getPlacementId: (placement: Placement) => string
   onPlacementUpdate: (updatedPlacements: Placement[]) => void
   onPlacementClick: (placement: Placement) => void
+  onSelectionToggle: (placementId: string, mode: 'toggle' | 'add' | 'set') => void
+  onClearSelection: () => void
   onBackgroundClick: (x: number, y: number) => void
   // Navigation props
   currentIndex?: number
@@ -35,8 +39,12 @@ export function EditablePlacementDiagram({
   cutConfig,
   snapEnabled,
   selectedPlacement,
+  selectedPlacements,
+  getPlacementId,
   onPlacementUpdate,
   onPlacementClick,
+  onSelectionToggle,
+  onClearSelection,
   onBackgroundClick,
   currentIndex,
   totalPatterns,
@@ -80,6 +88,53 @@ export function EditablePlacementDiagram({
   }, [pattern.placements, cutConfig, snapEnabled, draggingPlacement, plateWidth, plateHeight])
 
   const snapThreshold = getSnapThreshold()
+
+  // Keyboard arrow key handler for moving selected placements
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedPlacements.size === 0) return
+
+      // Only handle arrow keys
+      if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        // Escape to clear selection
+        if (e.key === 'Escape') {
+          onClearSelection()
+        }
+        return
+      }
+
+      e.preventDefault()
+
+      // Movement distance: 1mm or 10mm with Shift
+      const distance = e.shiftKey ? 10 : 1
+
+      // Calculate offset based on arrow key
+      let dx = 0
+      let dy = 0
+      if (e.key === 'ArrowLeft') dx = -distance
+      if (e.key === 'ArrowRight') dx = distance
+      if (e.key === 'ArrowUp') dy = -distance
+      if (e.key === 'ArrowDown') dy = distance
+
+      // Move all selected placements
+      const updatedPlacements = pattern.placements.map((placement) => {
+        const placementId = getPlacementId(placement)
+        if (selectedPlacements.has(placementId)) {
+          return {
+            ...placement,
+            x: placement.x + dx,
+            y: placement.y + dy,
+          }
+        }
+        return placement
+      })
+
+      onPlacementUpdate(updatedPlacements)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedPlacements, pattern.placements, getPlacementId, onPlacementUpdate, onClearSelection])
 
   const handleDragStart = (placement: Placement) => {
     setDraggingPlacement(placement)
@@ -377,19 +432,26 @@ export function EditablePlacementDiagram({
             )}
 
             {/* Draggable Placements */}
-            {pattern.placements.map((placement, index) => (
-              <DraggableProduct
-                key={`${placement.item.id}-${index}`}
-                placement={placement}
-                svgRef={svgRef}
-                isInvalid={isPlacementInvalid(placement)}
-                onDragStart={handleDragStart}
-                onDrag={handleDrag}
-                onDragEnd={handleDragEnd}
-                onClick={handlePlacementClick}
-                onRotate={handleRotate}
-              />
-            ))}
+            {pattern.placements.map((placement, index) => {
+              const placementId = getPlacementId(placement)
+              const isSelected = selectedPlacements.has(placementId)
+              return (
+                <DraggableProduct
+                  key={`${placement.item.id}-${index}`}
+                  placement={placement}
+                  svgRef={svgRef}
+                  isInvalid={isPlacementInvalid(placement)}
+                  isSelected={isSelected}
+                  placementId={placementId}
+                  onDragStart={handleDragStart}
+                  onDrag={handleDrag}
+                  onDragEnd={handleDragEnd}
+                  onClick={handlePlacementClick}
+                  onSelectionToggle={onSelectionToggle}
+                  onRotate={handleRotate}
+                />
+              )
+            })}
           </svg>
         </div>
       </div>

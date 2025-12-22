@@ -11,6 +11,8 @@ interface DraggableProductProps {
   isInvalid?: boolean
   /** 選択されているかどうか */
   isSelected?: boolean
+  /** Placement ID (for multi-selection) */
+  placementId?: string
   /** ドラッグ開始時のコールバック */
   onDragStart?: (placement: Placement) => void
   /** ドラッグ中のコールバック */
@@ -19,6 +21,8 @@ interface DraggableProductProps {
   onDragEnd?: (x: number, y: number) => void
   /** クリック時のコールバック（仮置き場への移動用） */
   onClick?: (placement: Placement) => void
+  /** 選択切り替えコールバック（Ctrl/Shift+Click用） */
+  onSelectionToggle?: (placementId: string, mode: 'toggle' | 'add' | 'set') => void
   /** 回転時のコールバック */
   onRotate?: (placement: Placement) => void
 }
@@ -32,10 +36,12 @@ export function DraggableProduct({
   svgRef,
   isInvalid = false,
   isSelected = false,
+  placementId,
   onDragStart,
   onDrag,
   onDragEnd,
   onClick,
+  onSelectionToggle,
   onRotate,
 }: DraggableProductProps) {
   const [isDragging, setIsDragging] = useState(false)
@@ -128,6 +134,30 @@ export function DraggableProduct({
     }
 
     const now = Date.now()
+
+    // Check for modifier keys (Ctrl/Cmd or Shift) - for multi-selection
+    const isCtrlOrCmd = e.ctrlKey || e.metaKey
+    const isShift = e.shiftKey
+
+    if ((isCtrlOrCmd || isShift) && onSelectionToggle && placementId) {
+      // Modifier key pressed → handle selection (immediate, no delay)
+      console.log(
+        `Selection click: ${isCtrlOrCmd ? 'Ctrl/Cmd' : 'Shift'}+Click on ${placement.item.name}`
+      )
+      e.preventDefault()
+      e.stopPropagation()
+
+      // Clear any pending single-click timeout
+      if (clickTimeout) {
+        clearTimeout(clickTimeout)
+        setClickTimeout(null)
+      }
+
+      const mode = isCtrlOrCmd ? 'toggle' : isShift ? 'add' : 'set'
+      onSelectionToggle(placementId, mode)
+      setLastClickTime(0) // Reset to prevent double-click detection
+      return
+    }
 
     // ダブルクリック検出（300ms以内の2回目のクリック）
     if (now - lastClickTime < 300 && lastClickTime > 0) {

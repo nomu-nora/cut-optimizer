@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Header, MainLayout } from '@/components/layout'
 import {
   PlateConfigForm,
@@ -49,12 +49,7 @@ import type {
   Placement,
   HistoryState,
 } from '@/types'
-import { DEFAULT_PLATE_CONFIG } from '@/types'
-
-const DEFAULT_CUT_CONFIG: CutConfig = {
-  cutWidth: 4,
-  margin: 20,
-}
+import { DEFAULT_PLATE_CONFIG, DEFAULT_CUT_CONFIG } from '@/types'
 
 export default function Home() {
   // Configuration state
@@ -137,6 +132,12 @@ export default function Home() {
   const handleCalculate = () => {
     if (items.length === 0) {
       setError('製品を追加してください')
+      return
+    }
+
+    // Prevent duplicate execution
+    if (isCalculating) {
+      console.log('計算は既に実行中です')
       return
     }
 
@@ -396,7 +397,7 @@ export default function Home() {
     }
   }
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     if (!editMode || !canUndo(historyState)) return
 
     const newHistory = undo(historyState)
@@ -423,9 +424,9 @@ export default function Home() {
     }
 
     setHistoryState(newHistory)
-  }
+  }, [editMode, historyState])
 
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
     if (!editMode || !canRedo(historyState)) return
 
     const newHistory = redo(historyState)
@@ -452,7 +453,7 @@ export default function Home() {
     }
 
     setHistoryState(newHistory)
-  }
+  }, [editMode, historyState])
 
   const handlePatternSelect = (pattern: PatternGroup) => {
     if (!editMode || !editableResult) {
@@ -739,7 +740,7 @@ export default function Home() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [editMode, historyState, editableResult, stagingArea, selectedPattern])
+  }, [editMode, handleUndo, handleRedo])
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -776,6 +777,7 @@ export default function Home() {
 
             <ProductList
               items={items}
+              plateConfig={plateConfig}
               onAddItem={handleAddItem}
               onUpdateItem={handleUpdateItem}
               onDelete={handleDeleteItem}

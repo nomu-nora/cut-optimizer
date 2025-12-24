@@ -345,7 +345,12 @@ function calculateGuillotine(
       ) {
         bestResult = result
       }
-    } catch {
+    } catch (error) {
+      // エラー内容をログ出力（デバッグ用）
+      console.error(
+        `Strategy failed (sort: ${strategy.sortStrategy}, rotation: ${strategy.rotationStrategy}):`,
+        error instanceof Error ? error.message : error
+      )
       // この戦略では配置できなかった場合はスキップ
       continue
     }

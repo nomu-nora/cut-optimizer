@@ -60,7 +60,7 @@ export function DraggableProduct({
         clearTimeout(clickTimeout)
       }
     }
-  }, [clickTimeout])
+  }, [])
 
   const handlePointerDown = (e: React.PointerEvent<SVGRectElement>) => {
     e.preventDefault()

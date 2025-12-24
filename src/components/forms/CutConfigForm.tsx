@@ -3,11 +3,7 @@
 import { useState } from 'react'
 import { Input } from '@/components/ui'
 import type { CutConfig } from '@/types'
-
-const DEFAULT_CUT_CONFIG: CutConfig = {
-  cutWidth: 4,
-  margin: 20,
-}
+import { DEFAULT_CUT_CONFIG } from '@/types'
 
 export interface CutConfigFormProps {
   initialConfig?: CutConfig

@@ -66,8 +66,8 @@ function tryGridPlacements(
 
   for (const [cols, rows] of gridsToTry) {
     // 回転なしで試す
-    const widthNeeded = item.width * cols + cutWidth * (cols - 1)
-    const heightNeeded = item.height * rows + cutWidth * (rows - 1)
+    const widthNeeded = Math.ceil(item.width * cols + cutWidth * (cols - 1))
+    const heightNeeded = Math.ceil(item.height * rows + cutWidth * (rows - 1))
 
     if (widthNeeded <= offcutWidth && heightNeeded <= offcutHeight) {
       const count = cols * rows
@@ -80,8 +80,8 @@ function tryGridPlacements(
     }
 
     // 回転ありで試す（90度回転）
-    const widthNeededRotated = item.height * cols + cutWidth * (cols - 1)
-    const heightNeededRotated = item.width * rows + cutWidth * (rows - 1)
+    const widthNeededRotated = Math.ceil(item.height * cols + cutWidth * (cols - 1))
+    const heightNeededRotated = Math.ceil(item.width * rows + cutWidth * (rows - 1))
 
     if (widthNeededRotated <= offcutWidth && heightNeededRotated <= offcutHeight) {
       const count = cols * rows

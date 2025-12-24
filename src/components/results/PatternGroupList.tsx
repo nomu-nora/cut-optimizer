@@ -44,9 +44,9 @@ export function PatternGroupList({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {patterns.map((pattern) => (
+            {patterns.map((pattern, index) => (
               <tr
-                key={pattern.patternId}
+                key={`${pattern.patternId}-${index}`}
                 className={`hover:bg-gray-50 cursor-pointer ${
                   selectedPatternId === pattern.patternId
                     ? pattern.isOffcut

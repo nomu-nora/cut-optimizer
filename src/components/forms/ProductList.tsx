@@ -2,12 +2,13 @@
 
 import { useState, useRef } from 'react'
 import { Card } from '@/components/ui'
-import type { Item } from '@/types'
+import type { Item, PlateConfig } from '@/types'
 import { COLOR_PALETTE } from '@/types/item'
 import { v4 as uuidv4 } from 'uuid'
 
 export interface ProductListProps {
   items: Item[]
+  plateConfig: PlateConfig
   onAddItem: (item: Item) => void
   onUpdateItem: (item: Item) => void
   onDelete: (itemId: string) => void
@@ -28,7 +29,13 @@ const getNextColor = (items: Item[]): string => {
   return COLOR_PALETTE[items.length % COLOR_PALETTE.length]
 }
 
-export function ProductList({ items, onAddItem, onUpdateItem, onDelete }: ProductListProps) {
+export function ProductList({
+  items,
+  plateConfig,
+  onAddItem,
+  onUpdateItem,
+  onDelete,
+}: ProductListProps) {
   // 編集状態
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
@@ -114,6 +121,16 @@ export function ProductList({ items, onAddItem, onUpdateItem, onDelete }: Produc
       return
     }
 
+    // 元板サイズを超えていないかチェック
+    const width = Number(editingWidth)
+    const height = Number(editingHeight)
+    if (width > plateConfig.width || height > plateConfig.height) {
+      alert(
+        `製品サイズが元板サイズ（${plateConfig.width}mm × ${plateConfig.height}mm）を超えています`
+      )
+      return
+    }
+
     const updatedItem: Item = {
       id: editingItemId,
       name: editingName,
@@ -136,6 +153,16 @@ export function ProductList({ items, onAddItem, onUpdateItem, onDelete }: Produc
   const handleAdd = () => {
     if (!newName || !newWidth || !newHeight || !newQuantity) {
       alert('全ての項目を入力してください')
+      return
+    }
+
+    // 元板サイズを超えていないかチェック
+    const width = Number(newWidth)
+    const height = Number(newHeight)
+    if (width > plateConfig.width || height > plateConfig.height) {
+      alert(
+        `製品サイズが元板サイズ（${plateConfig.width}mm × ${plateConfig.height}mm）を超えています`
+      )
       return
     }
 

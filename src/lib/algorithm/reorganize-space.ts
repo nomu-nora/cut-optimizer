@@ -272,11 +272,7 @@ export function scoreOffcutQuality(
  * TODO: 実際のPlateオブジェクトからfreeSpacesを取得する必要がある
  * 現在は歩留まりから逆算して推定
  */
-function estimateFreeSpaces(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pattern: any,
-  plateConfig: PlateConfig
-): FreeSpace[] {
+function estimateFreeSpaces(pattern: PatternGroup, plateConfig: PlateConfig): FreeSpace[] {
   // 簡易版: 歩留まりから余白を推定
   const plateArea = plateConfig.width * plateConfig.height
   const usedRatio = pattern.yield / 100

@@ -165,6 +165,12 @@ export function decideRotation(
 
     case 'fit-space': {
       // 空きスペースに合わせる（空きスペースが横長なら製品も横長に）
+      // ゼロ除算を防ぐ
+      if (space.height === 0 || item.height === 0 || item.width === 0) {
+        rotated = false
+        break
+      }
+
       const spaceRatio = space.width / space.height
       const itemRatio = item.width / item.height
       const itemRatioRotated = item.height / item.width

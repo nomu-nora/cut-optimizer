@@ -89,6 +89,12 @@ export function EditablePlacementDiagram({
 
   const snapThreshold = getSnapThreshold()
 
+  // Memoize placement IDs to avoid unnecessary re-renders
+  const placementIds = useMemo(
+    () => pattern.placements.map((p) => getPlacementId(p)),
+    [pattern.placements, getPlacementId]
+  )
+
   // Keyboard arrow key handler for moving selected placements
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -134,7 +140,14 @@ export function EditablePlacementDiagram({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [selectedPlacements, pattern.placements, getPlacementId, onPlacementUpdate, onClearSelection])
+  }, [
+    selectedPlacements,
+    placementIds,
+    pattern.placements,
+    getPlacementId,
+    onPlacementUpdate,
+    onClearSelection,
+  ])
 
   const handleDragStart = (placement: Placement) => {
     setDraggingPlacement(placement)
@@ -347,6 +360,7 @@ export function EditablePlacementDiagram({
                   disabled={currentIndex === 0}
                   className="px-3 py-1 text-sm font-medium rounded border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   title="前のパターン"
+                  aria-label="前のパターンに移動"
                 >
                   ← 前
                 </button>
@@ -355,6 +369,7 @@ export function EditablePlacementDiagram({
                   disabled={currentIndex === totalPatterns - 1}
                   className="px-3 py-1 text-sm font-medium rounded border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                   title="次のパターン"
+                  aria-label="次のパターンに移動"
                 >
                   次 →
                 </button>

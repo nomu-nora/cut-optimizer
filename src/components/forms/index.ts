@@ -17,3 +17,12 @@ export type { OffcutListProps } from './OffcutList'
 
 export { OffcutPresetManager } from './OffcutPresetManager'
 export type { OffcutPresetManagerProps } from './OffcutPresetManager'
+
+export { TemplateManager } from './TemplateManager'
+export type { TemplateManagerProps } from './TemplateManager'
+
+export { OffcutTemplateManager } from './OffcutTemplateManager'
+export type { OffcutTemplateManagerProps } from './OffcutTemplateManager'
+
+export { TemplateSaveDialog } from './TemplateSaveDialog'
+export type { TemplateSaveDialogProps } from './TemplateSaveDialog'

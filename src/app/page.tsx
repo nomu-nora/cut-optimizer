@@ -6,10 +6,11 @@ import {
   PlateConfigForm,
   CutConfigForm,
   ProductList,
-  PresetManager,
   CalculationControl,
   OffcutList,
-  OffcutPresetManager,
+  TemplateManager,
+  OffcutTemplateManager,
+  TemplateSaveDialog,
 } from '@/components/forms'
 import {
   ResultSummary,
@@ -18,13 +19,14 @@ import {
   EditablePlacementDiagram,
   SkippedItemsDisplay,
 } from '@/components/results'
+import { CalculationHistoryList } from '@/components/history'
 import { EditModeToolbar, StagingAreaComponent, SplitPatternDialog } from '@/components/editing'
 import { PrintButton, PrintPreview } from '@/components/print'
-import { Button, Spinner, ErrorMessage, LoadingOverlay, Card } from '@/components/ui'
+import { Button, Spinner, ErrorMessage, LoadingOverlay, Card, Tabs } from '@/components/ui'
 import { calculate, calculateWithOffcuts, type OptimizationGoal } from '@/lib/algorithm/guillotine'
+import { saveCalculationHistory, cleanupOldCalculations } from '@/lib/database/history'
 import { calculateYield } from '@/lib/utils/yield-calculator'
 import { validateQuantities } from '@/lib/validation/quantity-validation'
-import { isValidPlacement } from '@/lib/validation/placement-validation'
 import {
   initializeHistory,
   undo,
@@ -50,15 +52,37 @@ import type {
   HistoryState,
 } from '@/types'
 import { DEFAULT_PLATE_CONFIG, DEFAULT_CUT_CONFIG } from '@/types'
+import { useAppInitialization } from '@/hooks/useAppInitialization'
 
 export default function Home() {
-  // Configuration state
-  const [plateConfig, setPlateConfig] = useState<PlateConfig>(DEFAULT_PLATE_CONFIG)
-  const [cutConfig, setCutConfig] = useState<CutConfig>(DEFAULT_CUT_CONFIG)
-  const [optimizationGoal, setOptimizationGoal] = useState<OptimizationGoal>('remaining-space')
-  const [useGA, setUseGA] = useState(false)
-  const [useGridGrouping, setUseGridGrouping] = useState(true)
-  const [offcutMode, setOffcutMode] = useState<OffcutMode>('consumption')
+  // App initialization (load user settings)
+  const { appReady, settings, error: initError, user } = useAppInitialization()
+
+  // Configuration state (initialized from user settings)
+  const [plateConfig, setPlateConfig] = useState<PlateConfig>(
+    settings?.plateConfig ?? DEFAULT_PLATE_CONFIG
+  )
+  const [cutConfig, setCutConfig] = useState<CutConfig>(settings?.cutConfig ?? DEFAULT_CUT_CONFIG)
+  const [optimizationGoal, setOptimizationGoal] = useState<OptimizationGoal>(
+    settings?.optimizationGoal ?? 'remaining-space'
+  )
+  const [useGA, setUseGA] = useState(settings?.useGA ?? false)
+  const [useGridGrouping, setUseGridGrouping] = useState(settings?.useGridGrouping ?? true)
+  const [offcutMode, setOffcutMode] = useState<OffcutMode>(settings?.offcutMode ?? 'consumption')
+
+  // Apply user settings when loaded
+  useEffect(() => {
+    if (settings) {
+      console.log('🔧 Applying settings to page state:', settings)
+      setPlateConfig(settings.plateConfig)
+      setCutConfig(settings.cutConfig)
+      setOptimizationGoal(settings.optimizationGoal)
+      setUseGA(settings.useGA)
+      setUseGridGrouping(settings.useGridGrouping)
+      setOffcutMode(settings.offcutMode)
+      console.log('✅ Settings applied to state')
+    }
+  }, [settings])
 
   // Items state
   const [items, setItems] = useState<Item[]>([])
@@ -72,8 +96,59 @@ export default function Home() {
   const [isCalculating, setIsCalculating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Auto-save calculation to history when completed
+  useEffect(() => {
+    const saveToHistory = async () => {
+      if (!result || isCalculating || !user) return
+
+      try {
+        console.log('💾 Auto-saving calculation to history...')
+        await saveCalculationHistory(user.id, {
+          plate_config: plateConfig,
+          cut_config: cutConfig,
+          products: items,
+          offcuts: offcuts,
+          optimization_goal: optimizationGoal,
+          use_ga: useGA,
+          use_grid_grouping: useGridGrouping,
+          offcut_mode: offcutMode,
+          result: result,
+        })
+        // Cleanup old calculations (keep 30 unstarred, starred items never deleted)
+        await cleanupOldCalculations(user.id, 30)
+        // Refresh history list
+        setHistoryRefreshKey((prev) => prev + 1)
+      } catch (err) {
+        console.error('Failed to save calculation to history:', err)
+        // Don't show error to user, this is a background operation
+      }
+    }
+
+    saveToHistory()
+  }, [
+    result,
+    isCalculating,
+    user,
+    plateConfig,
+    cutConfig,
+    items,
+    offcuts,
+    optimizationGoal,
+    useGA,
+    useGridGrouping,
+    offcutMode,
+  ])
+
   // Print state
   const [showPrintPreview, setShowPrintPreview] = useState(false)
+
+  // Template save dialog state
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [saveDialogType, setSaveDialogType] = useState<'product' | 'offcut'>('product')
+  const [templateRefreshKey, setTemplateRefreshKey] = useState(0)
+
+  // History state
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0)
 
   // Edit mode state
   const [editMode, setEditMode] = useState(false)
@@ -125,6 +200,28 @@ export default function Home() {
 
   const handleLoadOffcutPreset = (presetOffcuts: OffcutPlate[]) => {
     setOffcuts(presetOffcuts)
+    setResult(null)
+    setSelectedPattern(undefined)
+  }
+
+  const handleRestoreFromHistory = (data: {
+    plateConfig: PlateConfig
+    cutConfig: CutConfig
+    items: Item[]
+    offcuts: OffcutPlate[]
+    optimizationGoal: OptimizationGoal
+    useGA: boolean
+    useGridGrouping: boolean
+    offcutMode: OffcutMode
+  }) => {
+    setPlateConfig(data.plateConfig)
+    setCutConfig(data.cutConfig)
+    setItems(data.items)
+    setOffcuts(data.offcuts)
+    setOptimizationGoal(data.optimizationGoal)
+    setUseGA(data.useGA)
+    setUseGridGrouping(data.useGridGrouping)
+    setOffcutMode(data.offcutMode)
     setResult(null)
     setSelectedPattern(undefined)
   }
@@ -742,6 +839,33 @@ export default function Home() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [editMode, handleUndo, handleRedo])
 
+  // Show loading while app initializes
+  if (!appReady) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <Spinner size="lg" text="設定を読み込んでいます..." />
+        </div>
+      </div>
+    )
+  }
+
+  // Show error if initialization failed
+  if (initError) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card>
+            <ErrorMessage message={initError} />
+            <p className="mt-4 text-sm text-gray-600">ページをリロードして再試行してください</p>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <main className="min-h-screen bg-gray-50">
       <Header />
@@ -762,8 +886,58 @@ export default function Home() {
               </div>
             </Card>
 
-            {/* Offcut Section */}
-            <OffcutPresetManager onLoadPreset={handleLoadOffcutPreset} />
+            {/* History & Templates Tabs */}
+            <Tabs
+              tabs={[
+                {
+                  id: 'history',
+                  label: '計算履歴',
+                  content: (
+                    <CalculationHistoryList
+                      key={historyRefreshKey}
+                      onRestore={handleRestoreFromHistory}
+                    />
+                  ),
+                },
+                {
+                  id: 'product-templates',
+                  label: '製品テンプレート',
+                  content: (
+                    <TemplateManager
+                      key={`product-${templateRefreshKey}`}
+                      onLoadTemplate={handleLoadPreset}
+                    />
+                  ),
+                },
+                {
+                  id: 'offcut-templates',
+                  label: '端材テンプレート',
+                  content: (
+                    <OffcutTemplateManager
+                      key={`offcut-${templateRefreshKey}`}
+                      onLoadTemplate={handleLoadOffcutPreset}
+                    />
+                  ),
+                },
+              ]}
+              defaultTab="history"
+            />
+
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">端材一覧</h3>
+              {offcuts.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setSaveDialogType('offcut')
+                    setShowSaveDialog(true)
+                  }}
+                >
+                  テンプレートとして保存
+                </Button>
+              )}
+            </div>
 
             <OffcutList
               offcuts={offcuts}
@@ -773,7 +947,21 @@ export default function Home() {
             />
 
             {/* Product Section */}
-            <PresetManager onLoadPreset={handleLoadPreset} />
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-semibold text-gray-900">製品一覧</h3>
+              {items.length > 0 && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setSaveDialogType('product')
+                    setShowSaveDialog(true)
+                  }}
+                >
+                  テンプレートとして保存
+                </Button>
+              )}
+            </div>
 
             <ProductList
               items={items}
@@ -970,6 +1158,19 @@ export default function Home() {
           pattern={selectedPattern}
           onSplit={handleSplitPattern}
           onClose={() => setShowSplitDialog(false)}
+        />
+      )}
+
+      {/* Template Save Dialog */}
+      {showSaveDialog && (
+        <TemplateSaveDialog
+          type={saveDialogType}
+          data={saveDialogType === 'product' ? items : offcuts}
+          onClose={() => setShowSaveDialog(false)}
+          onSaved={() => {
+            // Trigger template list reload by updating key
+            setTemplateRefreshKey((prev) => prev + 1)
+          }}
         />
       )}
     </main>

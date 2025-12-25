@@ -13,6 +13,9 @@ export interface OffcutListProps {
 }
 
 export function OffcutList({ offcuts, onAddOffcut, onUpdateOffcut, onDelete }: OffcutListProps) {
+  // 選択状態
+  const [selectedOffcutId, setSelectedOffcutId] = useState<string | null>(null)
+
   // 編集状態
   const [editingOffcutId, setEditingOffcutId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
@@ -72,8 +75,20 @@ export function OffcutList({ offcuts, onAddOffcut, onUpdateOffcut, onDelete }: O
     }
   }
 
+  // 行クリック（選択 or 編集開始）
+  const handleRowClick = (offcut: OffcutPlate) => {
+    if (selectedOffcutId === offcut.id) {
+      // 2回目のクリック - 編集モードに入る
+      handleEdit(offcut)
+    } else {
+      // 1回目のクリック - 選択する
+      setSelectedOffcutId(offcut.id)
+    }
+  }
+
   // 編集開始
   const handleEdit = (offcut: OffcutPlate) => {
+    setSelectedOffcutId(null) // 選択状態をクリア
     setEditingOffcutId(offcut.id)
     setEditingName(offcut.name)
     setEditingWidth(offcut.width)
@@ -100,11 +115,13 @@ export function OffcutList({ offcuts, onAddOffcut, onUpdateOffcut, onDelete }: O
 
     onUpdateOffcut(updatedOffcut)
     setEditingOffcutId(null)
+    setSelectedOffcutId(null) // 選択状態もクリア
   }
 
   // 編集キャンセル
   const handleCancel = () => {
     setEditingOffcutId(null)
+    setSelectedOffcutId(null) // 選択状態もクリア
   }
 
   // 新規追加
@@ -158,6 +175,7 @@ export function OffcutList({ offcuts, onAddOffcut, onUpdateOffcut, onDelete }: O
             {/* 既存端材 */}
             {offcuts.map((offcut) => {
               const isEditing = editingOffcutId === offcut.id
+              const isSelected = selectedOffcutId === offcut.id
 
               if (isEditing) {
                 // 編集行
@@ -236,8 +254,10 @@ export function OffcutList({ offcuts, onAddOffcut, onUpdateOffcut, onDelete }: O
               return (
                 <tr
                   key={offcut.id}
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => handleEdit(offcut)}
+                  className={`hover:bg-gray-50 cursor-pointer ${
+                    isSelected ? 'bg-blue-50 ring-2 ring-blue-300' : ''
+                  }`}
+                  onClick={() => handleRowClick(offcut)}
                 >
                   <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                     {offcut.name}

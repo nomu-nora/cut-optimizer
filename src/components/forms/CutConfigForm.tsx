@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui'
 import type { CutConfig } from '@/types'
 import { DEFAULT_CUT_CONFIG } from '@/types'
@@ -16,6 +16,11 @@ export function CutConfigForm({
 }: CutConfigFormProps) {
   const [config, setConfig] = useState<CutConfig>(initialConfig)
   const [errors, setErrors] = useState<Partial<Record<keyof CutConfig, string>>>({})
+
+  // Update internal state when initialConfig changes
+  useEffect(() => {
+    setConfig(initialConfig)
+  }, [initialConfig])
 
   const validateField = (field: keyof CutConfig, value: number): string | undefined => {
     if (value < 0) {
@@ -50,13 +55,25 @@ export function CutConfigForm({
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, nextFieldId?: string) => {
+    if (e.key === 'Enter' && nextFieldId) {
+      e.preventDefault()
+      const nextField = document.getElementById(nextFieldId)
+      if (nextField) {
+        nextField.focus()
+      }
+    }
+  }
+
   return (
     <div className="space-y-4">
       <Input
+        id="cut-width"
         label="カット幅 (mm)"
         type="number"
         value={config.cutWidth || ''}
         onChange={(e) => handleChange('cutWidth', e.target.value)}
+        onKeyDown={(e) => handleKeyDown(e, 'cut-margin')}
         error={errors.cutWidth}
         helperText="製品と製品の間のカット幅"
         fullWidth
@@ -66,6 +83,7 @@ export function CutConfigForm({
       />
 
       <Input
+        id="cut-margin"
         label="余白 (mm)"
         type="number"
         value={config.margin || ''}

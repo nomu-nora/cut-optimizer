@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui'
 import type { PlateConfig } from '@/types'
 import { DEFAULT_PLATE_CONFIG } from '@/types'
@@ -16,6 +16,11 @@ export function PlateConfigForm({
 }: PlateConfigFormProps) {
   const [config, setConfig] = useState<PlateConfig>(initialConfig)
   const [errors, setErrors] = useState<Partial<Record<keyof PlateConfig, string>>>({})
+
+  // Update internal state when initialConfig changes
+  useEffect(() => {
+    setConfig(initialConfig)
+  }, [initialConfig])
 
   const validateField = (field: keyof PlateConfig, value: number): string | undefined => {
     if (value <= 0) {
@@ -53,13 +58,25 @@ export function PlateConfigForm({
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, nextFieldId?: string) => {
+    if (e.key === 'Enter' && nextFieldId) {
+      e.preventDefault()
+      const nextField = document.getElementById(nextFieldId)
+      if (nextField) {
+        nextField.focus()
+      }
+    }
+  }
+
   return (
     <div className="space-y-4">
       <Input
+        id="plate-width"
         label="元板の幅 (mm)"
         type="number"
         value={config.width || ''}
         onChange={(e) => handleChange('width', e.target.value)}
+        onKeyDown={(e) => handleKeyDown(e, 'plate-height')}
         error={errors.width}
         fullWidth
         min="0"
@@ -68,10 +85,12 @@ export function PlateConfigForm({
       />
 
       <Input
+        id="plate-height"
         label="元板の高さ (mm)"
         type="number"
         value={config.height || ''}
         onChange={(e) => handleChange('height', e.target.value)}
+        onKeyDown={(e) => handleKeyDown(e, 'plate-unitPrice')}
         error={errors.height}
         fullWidth
         min="0"
@@ -80,10 +99,12 @@ export function PlateConfigForm({
       />
 
       <Input
+        id="plate-unitPrice"
         label="元板の単価 (円)"
         type="number"
         value={config.unitPrice || ''}
         onChange={(e) => handleChange('unitPrice', e.target.value)}
+        onKeyDown={(e) => handleKeyDown(e, 'cut-width')}
         error={errors.unitPrice}
         fullWidth
         min="0"

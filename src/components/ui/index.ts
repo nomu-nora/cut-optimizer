@@ -18,3 +18,6 @@ export type { ErrorMessageProps } from './ErrorMessage'
 
 export { LoadingOverlay } from './LoadingOverlay'
 export type { LoadingOverlayProps } from './LoadingOverlay'
+
+export { Tabs } from './Tabs'
+export type { TabsProps, Tab } from './Tabs'

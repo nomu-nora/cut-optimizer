@@ -36,6 +36,9 @@ export function ProductList({
   onUpdateItem,
   onDelete,
 }: ProductListProps) {
+  // 選択状態
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+
   // 編集状態
   const [editingItemId, setEditingItemId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState('')
@@ -101,8 +104,20 @@ export function ProductList({
     }
   }
 
+  // 行クリック（選択 or 編集開始）
+  const handleRowClick = (item: Item) => {
+    if (selectedItemId === item.id) {
+      // 2回目のクリック - 編集モードに入る
+      handleEdit(item)
+    } else {
+      // 1回目のクリック - 選択する
+      setSelectedItemId(item.id)
+    }
+  }
+
   // 編集開始
   const handleEdit = (item: Item) => {
+    setSelectedItemId(null) // 選択状態をクリア
     setEditingItemId(item.id)
     setEditingName(item.name)
     setEditingWidth(item.width)
@@ -142,11 +157,13 @@ export function ProductList({
 
     onUpdateItem(updatedItem)
     setEditingItemId(null)
+    setSelectedItemId(null) // 選択状態もクリア
   }
 
   // 編集キャンセル
   const handleCancel = () => {
     setEditingItemId(null)
+    setSelectedItemId(null) // 選択状態もクリア
   }
 
   // 新規追加
@@ -214,6 +231,7 @@ export function ProductList({
             {/* 既存製品 */}
             {items.map((item) => {
               const isEditing = editingItemId === item.id
+              const isSelected = selectedItemId === item.id
 
               if (isEditing) {
                 // 編集行
@@ -310,8 +328,10 @@ export function ProductList({
               return (
                 <tr
                   key={item.id}
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() => handleEdit(item)}
+                  className={`hover:bg-gray-50 cursor-pointer ${
+                    isSelected ? 'bg-blue-50 ring-2 ring-blue-300' : ''
+                  }`}
+                  onClick={() => handleRowClick(item)}
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div
